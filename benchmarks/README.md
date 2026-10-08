@@ -142,3 +142,18 @@ How efficiently can that meaning be represented and processed?
 ```
 
 Semantic interoperability is the primary OMWEI objective. Compactness and energy efficiency are engineering outcomes to be measured.
+
+
+## Executable comparison
+
+The current Rust comparison also measures encode and decode time for 1,000,000 iterations of the same semantic observation.
+
+Run:
+
+```bash
+cargo test
+cargo run --release --bin compare
+```
+
+This is a microbenchmark, not yet an energy or transport benchmark. Results must be reported from the same machine, Rust version, optimization level, and workload. Allocation and CPU-cycle measurements remain a next step.
+
