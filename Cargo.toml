@@ -3,7 +3,11 @@ name = "omwei-iot"
 version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
-description = "Compact semantic interoperability core for heterogeneous IoT systems"
+description = "Semantic interoperability primitives for heterogeneous IoT systems"
+repository = "https://github.com/Equinibrium/omwei_iot"
+readme = "README.md"
+keywords = ["iot", "semantic", "interoperability", "embedded", "telemetry"]
+categories = ["embedded", "encoding", "network-programming"]
 
 [lib]
 name = "omwei_iot"
