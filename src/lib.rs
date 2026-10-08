@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+pub mod mapping;
 pub mod registry;
 
 pub const AMBIENT_TEMPERATURE_ID: u16 = 0x0042;
