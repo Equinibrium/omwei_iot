@@ -17,7 +17,7 @@ struct CorpusDescriptor {
 
 #[derive(Debug, Deserialize)]
 struct CorpusEncoding {
-    scale: i32,
+    scale: f64,
     offset: i32,
 }
 
@@ -34,7 +34,7 @@ pub fn parse_corpus(yaml: &str) -> Result<Vec<Descriptor>, String> {
             id,
             label: Box::leak(d.label.into_boxed_str()),
             unit: Box::leak(d.unit.into_boxed_str()),
-            scale: d.encoding.scale,
+            scale: (1.0 / d.encoding.scale).round() as i32,
             offset: d.encoding.offset,
             min: i32::MIN,
             max: i32::MAX,
@@ -115,6 +115,6 @@ descriptors:
         assert_eq!(parsed[0].id, 0x0042);
         assert_eq!(parsed[0].label, "ambient_temperature");
         assert_eq!(parsed[0].unit, "degree_Celsius");
-        assert_eq!(parsed[0].scale, 0); // YAML scale 0.001 is not yet mapped to integer scale.
+        assert_eq!(parsed[0].scale, 1000);
     }
 }
