@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+pub mod registry;
+
 pub const AMBIENT_TEMPERATURE_ID: u16 = 0x0042;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -24,10 +26,7 @@ pub const AMBIENT_TEMPERATURE: Descriptor = Descriptor {
 };
 
 pub fn descriptor(id: u16) -> Option<&'static Descriptor> {
-    match id {
-        AMBIENT_TEMPERATURE_ID => Some(&AMBIENT_TEMPERATURE),
-        _ => None,
-    }
+    registry::CORPUS_V0_1.resolve(id)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
