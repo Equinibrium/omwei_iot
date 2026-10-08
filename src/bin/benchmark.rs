@@ -144,6 +144,12 @@ fn main() {
                 serde_cbor::from_slice(black_box(&cbor_bytes)).unwrap();
             black_box(value.value.to_bits() as usize)
         }), &baseline);
+        summarize(&mut rows, "decode", "OMWEI-RAW", n, omwei_bytes.len(), samples(n, || {
+            let bytes = black_box(&omwei_bytes);
+            let descriptor_id = u16::from_be_bytes([bytes[0], bytes[1]]);
+            let canonical_value = i32::from_be_bytes([bytes[2], bytes[3], bytes[4], bytes[5]]);
+            black_box(descriptor_id as usize ^ canonical_value as usize)
+        }), &baseline);
         summarize(&mut rows, "decode", "OMWEI", n, omwei_bytes.len(), samples(n, || {
             let value = decode(black_box(&omwei_bytes)).unwrap();
             black_box(value.canonical_value as usize)
