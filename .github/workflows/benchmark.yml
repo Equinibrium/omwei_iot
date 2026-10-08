@@ -11,6 +11,9 @@ on:
       - "build.rs"
       - ".github/workflows/benchmark.yml"
 
+permissions:
+  contents: write
+
 jobs:
   benchmark:
     runs-on: ubuntu-latest
@@ -31,11 +34,34 @@ jobs:
       - name: Run comparison
         run: cargo run --release --bin compare
 
+      - name: Publish benchmark result
+        run: |
+          cp benchmark-results/benchmark.csv benchmarks/latest.csv
+          {
+            echo "Benchmark commit: $GITHUB_SHA"
+            echo "Workflow run: $GITHUB_RUN_ID"
+            echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > benchmarks/latest-run.txt
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add benchmarks/latest.csv benchmarks/latest-run.txt
+
+          if git diff --cached --quiet; then
+            echo "No benchmark result changes to commit."
+            exit 0
+          fi
+
+          git commit -m "ci: publish latest benchmark results"
+          git push
+
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
         with:
           name: omwei-iot-benchmark-results
           path: |
             benchmark-results/**
+            benchmarks/latest.csv
+            benchmarks/latest-run.txt
             **/*.csv
           if-no-files-found: ignore
