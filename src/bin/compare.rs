@@ -20,6 +20,22 @@ fn main() {
 
     const N: usize = 1_000_000;
 
+    // Encoding benchmark: construct the same semantic observation repeatedly.
+    let start = Instant::now();
+    let mut json_encoded = 0usize;
+    for _ in 0..N { json_encoded += serde_json::to_vec(&json).unwrap().len(); }
+    let json_encode_elapsed = start.elapsed();
+
+    let start = Instant::now();
+    let mut cbor_encoded = 0usize;
+    for _ in 0..N { cbor_encoded += serde_cbor::to_vec(&json).unwrap().len(); }
+    let cbor_encode_elapsed = start.elapsed();
+
+    let start = Instant::now();
+    let mut omwei_encoded = 0usize;
+    for _ in 0..N { omwei_encoded += encode(atom).len(); }
+    let omwei_encode_elapsed = start.elapsed();
+
     let start = Instant::now();
     let mut json_sum = 0usize;
     for _ in 0..N {
@@ -50,4 +66,9 @@ fn main() {
     println!("CBOR       {:?}", cbor_elapsed);
     println!("OMWEI      {:?}", omwei_elapsed);
     println!("Checksums  {} / {} / {}", json_sum, cbor_sum, omwei_sum);
+    println!();
+    println!("Encode benchmark: {} iterations", N);
+    println!("JSON       {:?} ({} bytes total)", json_encode_elapsed, json_encoded);
+    println!("CBOR       {:?} ({} bytes total)", cbor_encode_elapsed, cbor_encoded);
+    println!("OMWEI      {:?} ({} bytes total)", omwei_encode_elapsed, omwei_encoded);
 }
