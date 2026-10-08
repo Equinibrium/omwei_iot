@@ -58,13 +58,13 @@ fn transport_metadata_is_not_part_of_semantic_atom() {
 }
 
 #[test]
-fn transport_binding_cannot_change_semantic_value() {
+fn changing_atom_bytes_changes_decoded_semantics() {
     let original = atom();
 
     let mut mqtt = mqtt_payload(original);
     let last = mqtt.len() - 1;
     mqtt[last] ^= 0x01;
 
-    assert!(decode(&mqtt[mqtt.len() - 6..]).is_ok());
-    assert_ne!(decode(&mqtt[mqtt.len() - 6..]).unwrap(), original);
+    let changed = decode(&mqtt[mqtt.len() - 6..]).unwrap();
+    assert_ne!(changed, original);
 }
