@@ -1,0 +1,24 @@
+version: 0.1
+
+descriptors:
+  - id: 0x0042
+    status: active
+    version: 1
+    label: ambient_temperature
+    semantic:
+      quantity_kind: temperature
+      mappings:
+        - vocabulary: QUDT
+          concept: Temperature
+    unit:
+      system: SI
+      canonical: degree_Celsius
+    encoding:
+      datatype: int32
+      signed: true
+      byte_order: big_endian
+      scale: 0.001
+      offset: 0
+    constraints:
+      min: -80000
+      max: 150000
