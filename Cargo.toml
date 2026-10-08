@@ -1,0 +1,14 @@
+[package]
+name = "omwei-iot"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Compact semantic interoperability core for heterogeneous IoT systems"
+
+[lib]
+name = "omwei_iot"
+path = "src/lib.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
