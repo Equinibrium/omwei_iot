@@ -1,4 +1,6 @@
-use crate::{Descriptor, AMBIENT_TEMPERATURE};
+use crate::Descriptor;
+
+include!(concat!(env!("OUT_DIR"), "/registry_generated.rs"));
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -48,9 +50,7 @@ pub struct Registry {
     descriptors: &'static [Descriptor],
 }
 
-pub const CORPUS_V0_1: Registry = Registry {
-    descriptors: &[AMBIENT_TEMPERATURE],
-};
+pub const CORPUS_V0_1: Registry = Registry { descriptors: DESCRIPTORS };
 
 impl Registry {
     pub const fn new(descriptors: &'static [Descriptor]) -> Self {
