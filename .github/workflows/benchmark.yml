@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - "src/**"
+      - "tests/**"
       - "registry/**"
       - "Cargo.toml"
       - "Cargo.lock"
