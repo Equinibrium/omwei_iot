@@ -1,0 +1,41 @@
+name: OMWEI IoT Benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/**"
+      - "registry/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "build.rs"
+      - ".github/workflows/benchmark.yml"
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Test
+        run: cargo test --release
+
+      - name: Run benchmark
+        run: cargo run --release --bin benchmark
+
+      - name: Run comparison
+        run: cargo run --release --bin compare
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: omwei-iot-benchmark-results
+          path: |
+            benchmark-results/**
+            **/*.csv
+          if-no-files-found: ignore
