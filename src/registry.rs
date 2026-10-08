@@ -13,8 +13,14 @@ struct CorpusFile {
 struct CorpusDescriptor {
     id: String,
     label: String,
-    unit: String,
+    unit: CorpusUnit,
     encoding: CorpusEncoding,
+    constraints: CorpusConstraints,
+}
+
+#[derive(Debug, Deserialize)]
+struct CorpusUnit {
+    canonical: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -23,34 +29,48 @@ struct CorpusEncoding {
     offset: i32,
 }
 
+#[derive(Debug, Deserialize)]
+struct CorpusConstraints {
+    min: i32,
+    max: i32,
+}
+
 /// Parse the checked-in corpus format. Runtime callers can then construct
 /// their own registry instead of relying on a hard-coded descriptor table.
 pub fn parse_corpus(yaml: &str) -> Result<Vec<Descriptor>, String> {
     let corpus: CorpusFile = serde_yaml::from_str(yaml).map_err(|e| e.to_string())?;
     let _version = corpus.version;
-    corpus.descriptors.into_iter().map(|d| {
-        let id = d.id.strip_prefix("0x")
-            .and_then(|s| u16::from_str_radix(s, 16).ok())
-            .ok_or_else(|| format!("invalid descriptor id: {}", d.id))?;
-        Ok(Descriptor {
-            id,
-            label: Box::leak(d.label.into_boxed_str()),
-            unit: Box::leak(d.unit.into_boxed_str()),
-            scale: (1.0 / d.encoding.scale).round() as i32,
-            offset: d.encoding.offset,
-            min: i32::MIN,
-            max: i32::MAX,
-        })
-    }).collect()
-}
 
+    corpus.descriptors
+        .into_iter()
+        .map(|d| {
+            let id = d
+                .id
+                .strip_prefix("0x")
+                .and_then(|s| u16::from_str_radix(s, 16).ok())
+                .ok_or_else(|| format!("invalid descriptor id: {}", d.id))?;
+
+            Ok(Descriptor {
+                id,
+                label: Box::leak(d.label.into_boxed_str()),
+                unit: Box::leak(d.unit.canonical.into_boxed_str()),
+                scale: (1.0 / d.encoding.scale).round() as i32,
+                offset: d.encoding.offset,
+                min: d.constraints.min,
+                max: d.constraints.max,
+            })
+        })
+        .collect()
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Registry {
     descriptors: &'static [Descriptor],
 }
 
-pub const CORPUS_V0_1: Registry = Registry { descriptors: DESCRIPTORS };
+pub const CORPUS_V0_1: Registry = Registry {
+    descriptors: DESCRIPTORS,
+};
 
 impl Registry {
     pub const fn new(descriptors: &'static [Descriptor]) -> Self {
@@ -110,11 +130,14 @@ descriptors:
       min: -80000
       max: 150000
 "#;
+
         let parsed = parse_corpus(yaml).unwrap();
         assert_eq!(parsed.len(), 1);
         assert_eq!(parsed[0].id, 0x0042);
         assert_eq!(parsed[0].label, "ambient_temperature");
         assert_eq!(parsed[0].unit, "degree_Celsius");
         assert_eq!(parsed[0].scale, 1000);
+        assert_eq!(parsed[0].min, -80000);
+        assert_eq!(parsed[0].max, 150000);
     }
 }
