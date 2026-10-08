@@ -1,4 +1,4 @@
-use omwei_iot::{encode, SemanticAtom, AMBIENT_TEMPERATURE_ID};
+use omwei_iot::{encode, mapping, SemanticAtom};
 
 #[derive(Debug)]
 struct VendorA {
@@ -11,12 +11,14 @@ struct VendorB {
 }
 
 fn vendor_a_to_omwei(v: VendorA) -> SemanticAtom {
-    SemanticAtom::new(AMBIENT_TEMPERATURE_ID, v.t_amb_milli_c).unwrap()
+    let d = mapping::ambient_temperature_descriptor().unwrap();
+    SemanticAtom::new(d.id, v.t_amb_milli_c).unwrap()
 }
 
 fn vendor_b_to_omwei(v: VendorB) -> SemanticAtom {
     let milli_c = (v.ambient_temp_c * 1000.0).round() as i32;
-    SemanticAtom::new(AMBIENT_TEMPERATURE_ID, milli_c).unwrap()
+    let d = mapping::ambient_temperature_descriptor().unwrap();
+    SemanticAtom::new(d.id, milli_c).unwrap()
 }
 
 fn canonicalize_fahrenheit_to_celsius(f: f64) -> i32 {
