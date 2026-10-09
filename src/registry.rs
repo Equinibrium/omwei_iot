@@ -12,9 +12,20 @@ pub struct CorpusMetadata {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParsedDescriptor {
+    pub id: u16,
+    pub label: String,
+    pub unit: String,
+    pub scale: i32,
+    pub offset: i32,
+    pub min: i32,
+    pub max: i32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParsedCorpus {
     pub metadata: CorpusMetadata,
-    pub descriptors: Vec<Descriptor>,
+    pub descriptors: Vec<ParsedDescriptor>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -52,8 +63,7 @@ struct CorpusConstraints {
 }
 
 /// Parse and validate a corpus using the same validation rules as the build.
-/// Metadata is returned alongside the descriptors so callers can identify the
-/// exact registry/schema/corpus snapshot they loaded.
+/// The returned descriptors own their strings; parsing does not leak memory.
 pub fn parse_corpus(yaml: &str) -> Result<ParsedCorpus, String> {
     crate::registry_validation::validate_corpus(yaml)?;
     let corpus: CorpusFile = serde_yaml::from_str(yaml)
@@ -79,10 +89,10 @@ pub fn parse_corpus(yaml: &str) -> Result<ParsedCorpus, String> {
             let scale = crate::registry_validation::exact_scale_multiplier(&scale_text)
                 .map_err(|e| format!("descriptor 0x{id:04X} scale {e}"))?;
 
-            Ok(Descriptor {
+            Ok(ParsedDescriptor {
                 id,
-                label: Box::leak(d.label.into_boxed_str()),
-                unit: Box::leak(d.unit.canonical.into_boxed_str()),
+                label: d.label,
+                unit: d.unit.canonical,
                 scale,
                 offset: d.encoding.offset,
                 min: d.constraints.min,
