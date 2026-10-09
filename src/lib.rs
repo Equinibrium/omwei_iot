@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+pub mod decimal_conversion;
 pub mod mapping;
 pub mod registry;
 pub mod registry_validation;
