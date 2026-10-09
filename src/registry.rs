@@ -1,11 +1,27 @@
 use crate::Descriptor;
+use serde::Deserialize;
+use serde_yaml::Value;
 
 include!(concat!(env!("OUT_DIR"), "/registry_generated.rs"));
-use serde::Deserialize;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CorpusMetadata {
+    pub registry_id: String,
+    pub schema_version: String,
+    pub corpus_version: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParsedCorpus {
+    pub metadata: CorpusMetadata,
+    pub descriptors: Vec<Descriptor>,
+}
 
 #[derive(Debug, Deserialize)]
 struct CorpusFile {
-    version: String,
+    registry_id: String,
+    schema_version: String,
+    corpus_version: String,
     descriptors: Vec<CorpusDescriptor>,
 }
 
@@ -25,7 +41,7 @@ struct CorpusUnit {
 
 #[derive(Debug, Deserialize)]
 struct CorpusEncoding {
-    scale: f64,
+    scale: Value,
     offset: i32,
 }
 
@@ -35,32 +51,47 @@ struct CorpusConstraints {
     max: i32,
 }
 
-/// Parse the checked-in corpus format. Runtime callers can then construct
-/// their own registry instead of relying on a hard-coded descriptor table.
-pub fn parse_corpus(yaml: &str) -> Result<Vec<Descriptor>, String> {
-    let corpus: CorpusFile = serde_yaml::from_str(yaml).map_err(|e| e.to_string())?;
-    let _version = corpus.version;
+/// Parse and validate a corpus using the same validation rules as the build.
+/// Metadata is returned alongside the descriptors so callers can identify the
+/// exact registry/schema/corpus snapshot they loaded.
+pub fn parse_corpus(yaml: &str) -> Result<ParsedCorpus, String> {
+    crate::registry_validation::validate_corpus(yaml)?;
+    let corpus: CorpusFile = serde_yaml::from_str(yaml)
+        .map_err(|e| format!("validated corpus could not be decoded: {e}"))?;
 
-    corpus.descriptors
+    let metadata = CorpusMetadata {
+        registry_id: corpus.registry_id,
+        schema_version: corpus.schema_version,
+        corpus_version: corpus.corpus_version,
+    };
+
+    let descriptors = corpus.descriptors
         .into_iter()
         .map(|d| {
-            let id = d
-                .id
-                .strip_prefix("0x")
+            let id = d.id.strip_prefix("0x")
                 .and_then(|s| u16::from_str_radix(s, 16).ok())
                 .ok_or_else(|| format!("invalid descriptor id: {}", d.id))?;
+            let scale_text = match d.encoding.scale {
+                Value::Number(n) => n.to_string(),
+                Value::String(s) => s,
+                _ => return Err(format!("descriptor 0x{id:04X} scale must be a decimal number")),
+            };
+            let scale = crate::registry_validation::exact_scale_multiplier(&scale_text)
+                .map_err(|e| format!("descriptor 0x{id:04X} scale {e}"))?;
 
             Ok(Descriptor {
                 id,
                 label: Box::leak(d.label.into_boxed_str()),
                 unit: Box::leak(d.unit.canonical.into_boxed_str()),
-                scale: (1.0 / d.encoding.scale).round() as i32,
+                scale,
                 offset: d.encoding.offset,
                 min: d.constraints.min,
                 max: d.constraints.max,
             })
         })
-        .collect()
+        .collect::<Result<Vec<_>, String>>()?;
+
+    Ok(ParsedCorpus { metadata, descriptors })
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -98,6 +129,13 @@ mod tests {
     }
 
     #[test]
+    fn compiled_corpus_exposes_identity_and_version() {
+        assert_eq!(REGISTRY_ID, "org.omwei.core");
+        assert_eq!(SCHEMA_VERSION, "1");
+        assert_eq!(CORPUS_VERSION, "0.1.0");
+    }
+
+    #[test]
     fn unknown_id_is_not_interoperable() {
         assert!(!CORPUS_V0_1.contains(0xFFFF));
     }
@@ -107,11 +145,13 @@ mod tests {
 mod corpus_tests {
     use super::*;
 
-    #[test]
-    fn checked_in_corpus_parses_and_resolves_temperature() {
-        let yaml = r#"version: 0.1
+    const VALID: &str = r#"registry_id: org.omwei.core
+schema_version: "1"
+corpus_version: "0.1.0"
+version: 0.1
 descriptors:
-  - id: 0x0042
+  - id: "0x0042"
+    namespace: core
     status: active
     version: 1
     label: ambient_temperature
@@ -131,13 +171,36 @@ descriptors:
       max: 150000
 "#;
 
-        let parsed = parse_corpus(yaml).unwrap();
-        assert_eq!(parsed.len(), 1);
-        assert_eq!(parsed[0].id, 0x0042);
-        assert_eq!(parsed[0].label, "ambient_temperature");
-        assert_eq!(parsed[0].unit, "degree_Celsius");
-        assert_eq!(parsed[0].scale, 1000);
-        assert_eq!(parsed[0].min, -80000);
-        assert_eq!(parsed[0].max, 150000);
+    #[test]
+    fn parser_returns_validated_metadata_and_descriptors() {
+        let parsed = parse_corpus(VALID).unwrap();
+        assert_eq!(parsed.metadata.registry_id, "org.omwei.core");
+        assert_eq!(parsed.metadata.schema_version, "1");
+        assert_eq!(parsed.metadata.corpus_version, "0.1.0");
+        assert_eq!(parsed.descriptors.len(), 1);
+        assert_eq!(parsed.descriptors[0].id, 0x0042);
+        assert_eq!(parsed.descriptors[0].label, "ambient_temperature");
+        assert_eq!(parsed.descriptors[0].unit, "degree_Celsius");
+        assert_eq!(parsed.descriptors[0].scale, 1000);
+        assert_eq!(parsed.descriptors[0].min, -80000);
+        assert_eq!(parsed.descriptors[0].max, 150000);
+    }
+
+    #[test]
+    fn parser_rejects_invalid_scale_instead_of_bypassing_validation() {
+        let invalid = VALID.replace("scale: 0.001", "scale: 0.3333333333");
+        assert!(parse_corpus(&invalid).unwrap_err().contains("exact positive integer reciprocal"));
+    }
+
+    #[test]
+    fn parser_rejects_missing_identity() {
+        let invalid = VALID.replace("registry_id: org.omwei.core\n", "");
+        assert!(parse_corpus(&invalid).is_err());
+    }
+
+    #[test]
+    fn parser_rejects_non_semver_corpus_version() {
+        let invalid = VALID.replace("corpus_version: \"0.1.0\"", "corpus_version: \"0.1\"");
+        assert!(parse_corpus(&invalid).is_err());
     }
 }
