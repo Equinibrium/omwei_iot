@@ -22,7 +22,11 @@ pub fn validate_corpus(yaml: &str) -> Result<(), String> {
         let idv = d.get(&Value::String("id".into())).ok_or_else(|| format!("{p}.id is required"))?;
         let idtext = idv.as_str()
             .ok_or_else(|| format!("{p}.id must be a quoted hexadecimal string such as \"0x0042\""))?;
-        let hex = idtext.strip_prefix("0x").or_else(|| idtext.strip_prefix("0X")).unwrap_or(idtext);
+        let hex = idtext.strip_prefix("0x")
+            .ok_or_else(|| format!("{p}.id must use canonical form \"0xNNNN\""))?;
+        if hex.len() != 4 || !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
+            return Err(format!("{p}.id must use canonical form \"0xNNNN\""));
+        }
         let id = u16::from_str_radix(hex, 16)
             .map_err(|_| format!("{p}.id must be a 16-bit hexadecimal ID"))?;
         if !ids.insert(id) { return Err(format!("duplicate descriptor ID: 0x{id:04X}")); }
@@ -189,6 +193,12 @@ descriptors:
       max: 150000
 "#;
     #[test] fn accepts_valid_corpus() { assert!(validate_corpus(VALID).is_ok()); }
+    #[test] fn rejects_noncanonical_descriptor_id_spellings() {
+        for id in ["0X0042", "0042", "0x042", "0x00042"] {
+            let corpus = VALID.replace("id: \"0x0042\"", &format!("id: \"{id}\""));
+            assert!(validate_corpus(&corpus).unwrap_err().contains("canonical form"));
+        }
+    }
     #[test] fn rejects_unquoted_descriptor_ids() {
         let corpus = VALID.replace("id: \"0x0042\"", "id: 0x0042");
         assert!(validate_corpus(&corpus).unwrap_err().contains("quoted hexadecimal string"));
