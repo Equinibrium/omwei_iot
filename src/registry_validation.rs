@@ -9,14 +9,14 @@ pub fn validate_corpus(yaml: &str) -> Result<(), String> {
     let schema = nonempty(map, "schema_version")?;
     if schema != "1" { return Err(format!("unsupported schema_version: {schema}")); }
     nonempty(map, "corpus_version")?;
-    let descriptors = map.get(Value::String("descriptors".into())).and_then(Value::as_sequence)
+    let descriptors = map.get(&Value::String("descriptors".into())).and_then(Value::as_sequence)
         .ok_or("descriptors must be a sequence")?;
     if descriptors.is_empty() { return Err("descriptors must not be empty".into()); }
     let mut ids = HashSet::new();
     for (i, item) in descriptors.iter().enumerate() {
         let p = format!("descriptors[{i}]");
         let d = item.as_mapping().ok_or_else(|| format!("{p} must be a mapping"))?;
-        let idv = d.get(Value::String("id".into())).ok_or_else(|| format!("{p}.id is required"))?;
+        let idv = d.get(&Value::String("id".into())).ok_or_else(|| format!("{p}.id is required"))?;
         let idtext = match idv { Value::String(s) => s.clone(), Value::Number(n) => n.to_string(), _ => return Err(format!("{p}.id must be a string or integer")) };
         let idtext = idtext.strip_prefix("0x").unwrap_or(&idtext);
         let id = u16::from_str_radix(idtext, 16).map_err(|_| format!("{p}.id must be a 16-bit hexadecimal ID"))?;
@@ -33,12 +33,12 @@ pub fn validate_corpus(yaml: &str) -> Result<(), String> {
         desc_string(d, "label", &p)?;
         let semantic = child_map(d, "semantic", &p)?;
         nonempty(semantic, "quantity_kind").map_err(|e| format!("{p}.{e}"))?;
-        if let Some(mappings) = semantic.get(Value::String("mappings".into())) {
+        if let Some(mappings) = semantic.get(&Value::String("mappings".into())) {
             let mappings = mappings.as_sequence().ok_or_else(|| format!("{p}.semantic.mappings must be a sequence"))?;
             for (j, m) in mappings.iter().enumerate() {
                 let m = m.as_mapping().ok_or_else(|| format!("{p}.semantic.mappings[{j}] must be a mapping"))?;
                 for key in ["vocabulary", "concept"] {
-                    m.get(Value::String(key.into())).and_then(Value::as_str).filter(|s| !s.trim().is_empty())
+                    m.get(&Value::String(key.into())).and_then(Value::as_str).filter(|s| !s.trim().is_empty())
                         .ok_or_else(|| format!("{p}.semantic.mappings[{j}].{key} is required"))?;
                 }
             }
@@ -48,13 +48,13 @@ pub fn validate_corpus(yaml: &str) -> Result<(), String> {
         nonempty(unit, "canonical").map_err(|e| format!("{p}.{e}"))?;
         let enc = child_map(d, "encoding", &p)?;
         for (key, expected) in [("datatype", "int32"), ("byte_order", "big_endian")] {
-            let actual = enc.get(Value::String(key.into())).and_then(Value::as_str).ok_or_else(|| format!("{p}.encoding.{key} is required"))?;
+            let actual = enc.get(&Value::String(key.into())).and_then(Value::as_str).ok_or_else(|| format!("{p}.encoding.{key} is required"))?;
             if actual != expected { return Err(format!("{p}.encoding.{key} must be {expected}")); }
         }
-        if enc.get(Value::String("signed".into())).and_then(Value::as_bool) != Some(true) {
+        if enc.get(&Value::String("signed".into())).and_then(Value::as_bool) != Some(true) {
             return Err(format!("{p}.encoding.signed must be true for int32"));
         }
-        let scale = enc.get(Value::String("scale".into())).and_then(Value::as_f64).ok_or_else(|| format!("{p}.encoding.scale must be numeric"))?;
+        let scale = enc.get(&Value::String("scale".into())).and_then(Value::as_f64).ok_or_else(|| format!("{p}.encoding.scale must be numeric"))?;
         if !scale.is_finite() || scale <= 0.0 { return Err(format!("{p}.encoding.scale must be finite and greater than zero")); }
         // The current generated Descriptor stores the reciprocal scale as i32.
         // Reject values that cannot be represented exactly by that implementation.
@@ -66,29 +66,29 @@ pub fn validate_corpus(yaml: &str) -> Result<(), String> {
         {
             return Err(format!("{p}.encoding.scale must have an integer reciprocal representable as i32"));
         }
-        enc.get(Value::String("offset".into())).and_then(Value::as_i64).filter(|v| i32::try_from(*v).is_ok())
+        enc.get(&Value::String("offset".into())).and_then(Value::as_i64).filter(|v| i32::try_from(*v).is_ok())
             .ok_or_else(|| format!("{p}.encoding.offset must fit int32"))?;
         let c = child_map(d, "constraints", &p)?;
         let min = int32(c, "min", &p)?;
         let max = int32(c, "max", &p)?;
         if min > max { return Err(format!("{p}.constraints.min must be <= max")); }
-        d.get(Value::String("version".into())).and_then(Value::as_u64).filter(|v| *v > 0)
+        d.get(&Value::String("version".into())).and_then(Value::as_u64).filter(|v| *v > 0)
             .ok_or_else(|| format!("{p}.version must be a positive integer"))?;
     }
     Ok(())
 }
 fn nonempty(m: &serde_yaml::Mapping, key: &str) -> Result<String, String> {
-    m.get(Value::String(key.into())).and_then(Value::as_str).filter(|s| !s.trim().is_empty())
+    m.get(&Value::String(key.into())).and_then(Value::as_str).filter(|s| !s.trim().is_empty())
         .map(str::to_owned).ok_or_else(|| format!("{key} must be a non-empty string"))
 }
 fn desc_string(m: &serde_yaml::Mapping, key: &str, p: &str) -> Result<String, String> {
     nonempty(m, key).map_err(|e| format!("{p}.{e}"))
 }
 fn child_map<'a>(m: &'a serde_yaml::Mapping, key: &str, p: &str) -> Result<&'a serde_yaml::Mapping, String> {
-    m.get(Value::String(key.into())).and_then(Value::as_mapping).ok_or_else(|| format!("{p}.{key} is required"))
+    m.get(&Value::String(key.into())).and_then(Value::as_mapping).ok_or_else(|| format!("{p}.{key} is required"))
 }
 fn int32(m: &serde_yaml::Mapping, key: &str, p: &str) -> Result<i32, String> {
-    m.get(Value::String(key.into())).and_then(Value::as_i64).filter(|v| i32::try_from(*v).is_ok()).map(|v| v as i32)
+    m.get(&Value::String(key.into())).and_then(Value::as_i64).filter(|v| i32::try_from(*v).is_ok()).map(|v| v as i32)
         .ok_or_else(|| format!("{p}.constraints.{key} must fit int32"))
 }
 
