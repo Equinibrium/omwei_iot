@@ -8,7 +8,10 @@ pub fn validate_corpus(yaml: &str) -> Result<(), String> {
     nonempty(map, "registry_id")?;
     let schema = nonempty(map, "schema_version")?;
     if schema != "1" { return Err(format!("unsupported schema_version: {schema}")); }
-    nonempty(map, "corpus_version")?;
+    let corpus_version = nonempty(map, "corpus_version")?;
+    if !is_semver(&corpus_version) {
+        return Err(format!("corpus_version must be MAJOR.MINOR.PATCH: {corpus_version}"));
+    }
     let descriptors = map.get(&Value::String("descriptors".into())).and_then(Value::as_sequence)
         .ok_or("descriptors must be a sequence")?;
     if descriptors.is_empty() { return Err("descriptors must not be empty".into()); }
@@ -54,18 +57,14 @@ pub fn validate_corpus(yaml: &str) -> Result<(), String> {
         if enc.get(&Value::String("signed".into())).and_then(Value::as_bool) != Some(true) {
             return Err(format!("{p}.encoding.signed must be true for int32"));
         }
-        let scale = enc.get(&Value::String("scale".into())).and_then(Value::as_f64).ok_or_else(|| format!("{p}.encoding.scale must be numeric"))?;
-        if !scale.is_finite() || scale <= 0.0 { return Err(format!("{p}.encoding.scale must be finite and greater than zero")); }
-        // The current generated Descriptor stores the reciprocal scale as i32.
-        // Reject values that cannot be represented exactly by that implementation.
-        let reciprocal = 1.0 / scale;
-        if !reciprocal.is_finite()
-            || reciprocal < 1.0
-            || reciprocal > i32::MAX as f64
-            || (reciprocal - reciprocal.round()).abs() > 1e-9
-        {
-            return Err(format!("{p}.encoding.scale must have an integer reciprocal representable as i32"));
-        }
+        let scale = enc.get(&Value::String("scale".into())).ok_or_else(|| format!("{p}.encoding.scale must be numeric"))?;
+        let scale_text = match scale {
+            Value::Number(n) => n.to_string(),
+            Value::String(s) => s.clone(),
+            _ => return Err(format!("{p}.encoding.scale must be a positive decimal number")),
+        };
+        exact_scale_multiplier(&scale_text)
+            .map_err(|e| format!("{p}.encoding.scale {e}"))?;
         enc.get(&Value::String("offset".into())).and_then(Value::as_i64).filter(|v| i32::try_from(*v).is_ok())
             .ok_or_else(|| format!("{p}.encoding.offset must fit int32"))?;
         let c = child_map(d, "constraints", &p)?;
@@ -77,6 +76,50 @@ pub fn validate_corpus(yaml: &str) -> Result<(), String> {
     }
     Ok(())
 }
+
+/// Return the exact positive integer R for a decimal scale where 1 / scale = R.
+/// No floating-point conversion or tolerance is used. Exponents are deliberately
+/// rejected so the corpus has one simple, auditable decimal representation.
+pub fn exact_scale_multiplier(scale: &str) -> Result<i32, String> {
+    if scale.is_empty() || scale.starts_with('-') || scale.starts_with('+') {
+        return Err("must be a positive plain decimal with an integer reciprocal".into());
+    }
+    let mut parts = scale.split('.');
+    let whole = parts.next().unwrap_or("");
+    let fraction = parts.next().unwrap_or("");
+    if parts.next().is_some()
+        || whole.is_empty()
+        || !whole.bytes().all(|b| b.is_ascii_digit())
+        || !fraction.bytes().all(|b| b.is_ascii_digit())
+        || (scale.contains('.') && fraction.is_empty())
+    {
+        return Err("must be a positive plain decimal with an integer reciprocal".into());
+    }
+    let digits = format!("{whole}{fraction}");
+    let numerator: u128 = digits.parse().map_err(|_| "is too large for exact decimal validation".to_string())?;
+    let denominator = 10_u128.checked_pow(fraction.len() as u32)
+        .ok_or_else(|| "has excessive decimal precision".to_string())?;
+    if numerator == 0 || denominator % numerator != 0 {
+        return Err("must have an exact positive integer reciprocal".into());
+    }
+    let reciprocal = denominator / numerator;
+    if reciprocal == 0 || reciprocal > i32::MAX as u128 {
+        return Err("integer reciprocal must fit a positive int32".into());
+    }
+    Ok(reciprocal as i32)
+}
+
+fn is_semver(version: &str) -> bool {
+    let parts: Vec<&str> = version.split('.').collect();
+    if parts.len() != 3 { return false; }
+    parts.iter().all(|part| {
+        !part.is_empty()
+            && part.bytes().all(|b| b.is_ascii_digit())
+            && (part == &"0" || !part.starts_with('0'))
+            && part.parse::<u64>().is_ok()
+    })
+}
+
 fn nonempty(m: &serde_yaml::Mapping, key: &str) -> Result<String, String> {
     m.get(&Value::String(key.into())).and_then(Value::as_str).filter(|s| !s.trim().is_empty())
         .map(str::to_owned).ok_or_else(|| format!("{key} must be a non-empty string"))
@@ -136,12 +179,23 @@ descriptors:
         assert!(validate_corpus(&VALID.replace("min: -80000", "min: 200000")).unwrap_err().contains("min must be <= max"));
     }
     #[test] fn rejects_zero_scale() {
-        assert!(validate_corpus(&VALID.replace("scale: 0.001", "scale: 0")).unwrap_err().contains("scale must be finite"));
+        assert!(validate_corpus(&VALID.replace("scale: 0.001", "scale: 0")).unwrap_err().contains("integer reciprocal"));
     }
-    #[test] fn rejects_unrepresentable_scale() {
-        assert!(validate_corpus(&VALID.replace("scale: 0.001", "scale: 0.003")).unwrap_err().contains("integer reciprocal"));
+    #[test] fn rejects_approximate_reciprocal_scale() {
+        assert!(validate_corpus(&VALID.replace("scale: 0.001", "scale: 0.3333333333")).unwrap_err().contains("exact positive integer reciprocal"));
+    }
+    #[test] fn rejects_non_semver_corpus_version() {
+        for version in ["0.1", "v0.1.0", "0.01.0", "0.1.0-beta"] {
+            assert!(validate_corpus(&VALID.replace("corpus_version: \"0.1.0\"", &format!("corpus_version: \"{version}\""))).is_err());
+        }
     }
     #[test] fn rejects_unknown_schema() {
         assert!(validate_corpus(&VALID.replace("schema_version: \"1\"", "schema_version: \"2\"")).unwrap_err().contains("unsupported schema_version"));
+    }
+    #[test] fn exact_scale_examples() {
+        assert_eq!(exact_scale_multiplier("0.001").unwrap(), 1000);
+        assert_eq!(exact_scale_multiplier("0.25").unwrap(), 4);
+        assert!(exact_scale_multiplier("0.3333333333").is_err());
+        assert!(exact_scale_multiplier("1e-3").is_err());
     }
 }
