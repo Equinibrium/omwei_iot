@@ -81,11 +81,8 @@ pub fn parse_corpus(yaml: &str) -> Result<ParsedCorpus, String> {
             let id = d.id.strip_prefix("0x")
                 .and_then(|s| u16::from_str_radix(s, 16).ok())
                 .ok_or_else(|| format!("invalid descriptor id: {}", d.id))?;
-            let scale_text = match d.encoding.scale {
-                Value::Number(n) => n.to_string(),
-                Value::String(s) => s,
-                _ => return Err(format!("descriptor 0x{id:04X} scale must be a decimal number")),
-            };
+            let scale_text = d.encoding.scale.as_str()
+                .ok_or_else(|| format!("descriptor 0x{id:04X} scale must be a quoted decimal string"))?;
             let scale = crate::registry_validation::exact_scale_multiplier(&scale_text)
                 .map_err(|e| format!("descriptor 0x{id:04X} scale {e}"))?;
 
