@@ -45,11 +45,8 @@ fn main() {
     for d in corpus.descriptors {
         let id = u16::from_str_radix(d.id.trim_start_matches("0x"), 16)
             .expect("validated descriptor ID must parse");
-        let scale_text = match d.encoding.scale {
-            Value::Number(n) => n.to_string(),
-            Value::String(s) => s,
-            _ => panic!("validated descriptor scale must be a decimal number"),
-        };
+        let scale_text = d.encoding.scale.as_str()
+            .expect("validated descriptor scale must be a quoted decimal string");
         let scale = registry_validation::exact_scale_multiplier(&scale_text)
             .expect("validated descriptor scale must have an exact integer reciprocal");
         out.push_str(&format!(
