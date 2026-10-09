@@ -81,7 +81,16 @@ The encoded integer is the value carried in the atom. For example, descriptor `0
 
 The corpus MUST define the unit, scale, offset, valid encoded-integer range, and rounding/conversion rule for every descriptor. The current prototype's integer `min` and `max` constraints apply to the encoded integer unless a future schema explicitly distinguishes encoded-domain and physical-domain constraints.
 
-Implementations MUST NOT rely on binary floating-point behavior to decide wire bytes. Conversion from external values to encoded integers must specify rounding and overflow behavior; the implementation must reject out-of-range values rather than silently wrap. The exact decimal representation and rounding rule are to be fixed by the conformance implementation before v0.2 is declared stable.
+Implementations MUST NOT rely on binary floating-point behavior to decide wire bytes. The current v0.2 draft conversion rule is:
+
+- The input is a plain base-10 decimal string, optionally prefixed by `+` or `-`, with an optional decimal point and at least one digit before the point. Exponent notation, whitespace, a missing integer part, and a point without following fractional digits are invalid.
+- At most 18 fractional digits are accepted by this implementation profile. Implementations MUST reject unsupported precision rather than silently truncate it.
+- Conversion uses exact decimal/integer arithmetic. For a descriptor whose runtime integer scale multiplier is (S) and physical offset is (O), compute (x = (value - O) \times S).
+- Round (x) to the nearest integer. Exact halfway cases round away from zero (for example, (+0.5 \to +1), (-0.5 \to -1)).
+- Check the rounded result against the descriptor's encoded-integer `min` and `max` and the signed 32-bit range. Reject overflow and out-of-range results; never wrap, saturate, or silently clamp.
+- A producer MUST emit the resulting signed 32-bit integer in two's-complement big-endian form. Equivalent decimal spellings such as `22.5` and `22.500` MUST produce identical bytes.
+
+This rule is implemented in `decimal_conversion::from_decimal` and covered by the draft vectors in `tests/vectors/decimal-conversion-v1.json`. The vector set is a draft conformance target, not yet a released compatibility guarantee.
 
 An unknown descriptor ID MUST be rejected or surfaced as unknown. A consumer MUST NOT guess a unit or infer meaning from the numeric ID or label alone.
 
