@@ -56,6 +56,16 @@ pub fn validate_corpus(yaml: &str) -> Result<(), String> {
         }
         let scale = enc.get(Value::String("scale".into())).and_then(Value::as_f64).ok_or_else(|| format!("{p}.encoding.scale must be numeric"))?;
         if !scale.is_finite() || scale <= 0.0 { return Err(format!("{p}.encoding.scale must be finite and greater than zero")); }
+        // The current generated Descriptor stores the reciprocal scale as i32.
+        // Reject values that cannot be represented exactly by that implementation.
+        let reciprocal = 1.0 / scale;
+        if !reciprocal.is_finite()
+            || reciprocal < 1.0
+            || reciprocal > i32::MAX as f64
+            || (reciprocal - reciprocal.round()).abs() > 1e-9
+        {
+            return Err(format!("{p}.encoding.scale must have an integer reciprocal representable as i32"));
+        }
         enc.get(Value::String("offset".into())).and_then(Value::as_i64).filter(|v| i32::try_from(*v).is_ok())
             .ok_or_else(|| format!("{p}.encoding.offset must fit int32"))?;
         let c = child_map(d, "constraints", &p)?;
@@ -127,6 +137,9 @@ descriptors:
     }
     #[test] fn rejects_zero_scale() {
         assert!(validate_corpus(&VALID.replace("scale: 0.001", "scale: 0")).unwrap_err().contains("scale must be finite"));
+    }
+    #[test] fn rejects_unrepresentable_scale() {
+        assert!(validate_corpus(&VALID.replace("scale: 0.001", "scale: 0.003")).unwrap_err().contains("integer reciprocal"));
     }
     #[test] fn rejects_unknown_schema() {
         assert!(validate_corpus(&VALID.replace("schema_version: \"1\"", "schema_version: \"2\"")).unwrap_err().contains("unsupported schema_version"));
