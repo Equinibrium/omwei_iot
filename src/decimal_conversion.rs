@@ -1,9 +1,7 @@
 //! Deterministic decimal-string conversion for OMWEI's encoded integer domain.
 //!
-//! No binary floating-point arithmetic is used. Decimal input must use plain
-//! base-10 notation (optional leading sign, optional decimal point; no exponent).
-//! Values are rounded to nearest integer after applying the descriptor's integer
-//! scale multiplier. Exact halfway cases round away from zero.
+//! No binary floating-point arithmetic is used. Input is plain base-10 notation.
+//! Exact halfway cases round away from zero.
 
 use crate::{descriptor, SemanticAtom};
 
@@ -34,7 +32,6 @@ fn parse_decimal(input: &str) -> Result<(i128, i128), &'static str> {
     if unsigned.contains('.') && fraction.is_empty() {
         return Err("decimal point must be followed by digits");
     }
-    // Bound the textual precision and prevent unbounded work / denominator growth.
     if fraction.len() > 18 {
         return Err("decimal precision exceeds 18 fractional digits");
     }
@@ -58,27 +55,32 @@ fn parse_decimal(input: &str) -> Result<(i128, i128), &'static str> {
     Ok((numerator, denominator))
 }
 
-/// Convert a plain decimal string in the descriptor's canonical physical unit
-/// into a validated atom. Scale is interpreted as an integer multiplier and
-/// offset as a physical-unit offset: encoded = round((value - offset) * scale).
-///
-/// Rounding is nearest, with exact ties away from zero. Out-of-range results,
-/// unknown descriptors, malformed decimals, and arithmetic overflow are rejected.
-pub fn from_decimal(descriptor_id: u16, input: &str) -> Result<SemanticAtom, &'static str> {
-    let d = descriptor(descriptor_id).ok_or("unknown descriptor")?;
-    if d.scale <= 0 {
+/// Convert decimal input with explicit integer multiplier, physical offset and
+/// encoded-domain bounds. Exposed only inside this module for offset conformance
+/// tests; public callers should use `from_decimal`.
+fn convert_with_parameters(
+    input: &str,
+    scale_multiplier: i32,
+    physical_offset: i32,
+    min_encoded: i32,
+    max_encoded: i32,
+) -> Result<i32, &'static str> {
+    if scale_multiplier <= 0 {
         return Err("descriptor scale multiplier must be positive");
+    }
+    if min_encoded > max_encoded {
+        return Err("invalid descriptor range");
     }
 
     let (numerator, denominator) = parse_decimal(input)?;
-    let offset_numerator = (d.offset as i128)
+    let offset_numerator = (physical_offset as i128)
         .checked_mul(denominator)
         .ok_or("decimal arithmetic overflow")?;
     let shifted = numerator
         .checked_sub(offset_numerator)
         .ok_or("decimal arithmetic overflow")?;
     let scaled = shifted
-        .checked_mul(d.scale as i128)
+        .checked_mul(scale_multiplier as i128)
         .ok_or("decimal arithmetic overflow")?;
 
     let magnitude = scaled.checked_abs().ok_or("decimal arithmetic overflow")?;
@@ -93,6 +95,21 @@ pub fn from_decimal(descriptor_id: u16, input: &str) -> Result<SemanticAtom, &'s
         rounded
     };
     let encoded = i32::try_from(signed).map_err(|_| "encoded value overflows int32")?;
+    if encoded < min_encoded || encoded > max_encoded {
+        return Err("encoded value is outside descriptor range");
+    }
+    Ok(encoded)
+}
+
+/// Convert a plain decimal string in the descriptor's canonical physical unit
+/// into a validated atom. The conversion is
+/// `encoded = round_half_away_from_zero((value - offset) * scale_multiplier)`.
+///
+/// Rounding is nearest, with exact ties away from zero. Out-of-range results,
+/// unknown descriptors, malformed decimals, and arithmetic overflow are rejected.
+pub fn from_decimal(descriptor_id: u16, input: &str) -> Result<SemanticAtom, &'static str> {
+    let d = descriptor(descriptor_id).ok_or("unknown descriptor")?;
+    let encoded = convert_with_parameters(input, d.scale, d.offset, d.min, d.max)?;
     SemanticAtom::new(descriptor_id, encoded)
 }
 
@@ -121,6 +138,18 @@ mod tests {
         assert_eq!(from_decimal(AMBIENT_TEMPERATURE_ID, "150.000").unwrap().canonical_value, 150_000);
         assert!(from_decimal(AMBIENT_TEMPERATURE_ID, "-80.0005").is_err());
         assert!(from_decimal(AMBIENT_TEMPERATURE_ID, "150.0005").is_err());
+    }
+
+    #[test]
+    fn nonzero_offset_is_applied_before_scaling() {
+        // Test-only descriptor profile: physical = encoded * 0.1 + 10.
+        // Therefore encoded = round((physical - 10) * 10), with encoded range [-100, 100].
+        assert_eq!(convert_with_parameters("10", 10, 10, -100, 100).unwrap(), 0);
+        assert_eq!(convert_with_parameters("10.05", 10, 10, -100, 100).unwrap(), 1);
+        assert_eq!(convert_with_parameters("0", 10, 10, -100, 100).unwrap(), -100);
+        assert_eq!(convert_with_parameters("20", 10, 10, -100, 100).unwrap(), 100);
+        assert!(convert_with_parameters("-0.05", 10, 10, -100, 100).is_err());
+        assert!(convert_with_parameters("20.05", 10, 10, -100, 100).is_err());
     }
 
     #[test]
