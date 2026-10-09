@@ -205,10 +205,10 @@ descriptors:
         assert!(validate_corpus(&VALID.replace("min: -80000", "min: 200000")).unwrap_err().contains("min must be <= max"));
     }
     #[test] fn rejects_zero_scale() {
-        assert!(validate_corpus(&VALID.replace("scale: "0".001", "scale: 0")).unwrap_err().contains("integer reciprocal"));
+        assert!(validate_corpus(&VALID.replace("scale: \"0.001\"", "scale: \"0\"")).unwrap_err().contains("integer reciprocal"));
     }
     #[test] fn rejects_approximate_reciprocal_scale() {
-        assert!(validate_corpus(&VALID.replace("scale: 0.001", "scale: "0.3333333333"")).unwrap_err().contains("exact positive integer reciprocal"));
+        assert!(validate_corpus(&VALID.replace("scale: \"0.001\"", "scale: \"0.3333333333\"")).unwrap_err().contains("exact positive integer reciprocal"));
     }
     #[test] fn rejects_non_semver_corpus_version() {
         for version in ["0.1", "v0.1.0", "0.01.0", "0.1.0-", "0.1.0+"] {
