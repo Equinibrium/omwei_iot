@@ -20,9 +20,21 @@ pub fn validate_corpus(yaml: &str) -> Result<(), String> {
         let p = format!("descriptors[{i}]");
         let d = item.as_mapping().ok_or_else(|| format!("{p} must be a mapping"))?;
         let idv = d.get(&Value::String("id".into())).ok_or_else(|| format!("{p}.id is required"))?;
-        let idtext = match idv { Value::String(s) => s.clone(), Value::Number(n) => n.to_string(), _ => return Err(format!("{p}.id must be a string or integer")) };
-        let idtext = idtext.strip_prefix("0x").unwrap_or(&idtext);
-        let id = u16::from_str_radix(idtext, 16).map_err(|_| format!("{p}.id must be a 16-bit hexadecimal ID"))?;
+        let id = match idv {
+            Value::String(s) => {
+                let hex = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")).unwrap_or(s);
+                u16::from_str_radix(hex, 16)
+                    .map_err(|_| format!("{p}.id must be a 16-bit hexadecimal ID"))?
+            }
+            // serde_yaml parses an unquoted YAML 0xNNNN scalar as an integer
+            // and preserves its numeric value, so do not stringify and reparse it
+            // as hexadecimal (which would turn decimal 66 into 0x0066).
+            Value::Number(n) => {
+                let numeric = n.as_u64().ok_or_else(|| format!("{p}.id must be a non-negative 16-bit ID"))?;
+                u16::try_from(numeric).map_err(|_| format!("{p}.id must fit in 16 bits"))?
+            }
+            _ => return Err(format!("{p}.id must be a hexadecimal string or a 16-bit integer")),
+        };
         if !ids.insert(id) { return Err(format!("duplicate descriptor ID: 0x{id:04X}")); }
 
         let namespace = desc_string(d, "namespace", &p)?;
@@ -189,6 +201,12 @@ descriptors:
       max: 150000
 "#;
     #[test] fn accepts_valid_corpus() { assert!(validate_corpus(VALID).is_ok()); }
+    #[test] fn unquoted_hex_yaml_ids_use_their_numeric_value() {
+        let corpus = VALID.replace("id: \"0x0042\"", "id: 0x0042");
+        assert!(validate_corpus(&corpus).is_ok());
+        let decimal_collision = corpus.replace("id: 0x0042", "id: 66");
+        assert!(validate_corpus(&decimal_collision).unwrap_err().contains("duplicate descriptor ID"));
+    }
     #[test] fn rejects_duplicate_ids() {
         let (header, descriptor) = VALID.split_once("descriptors:\n").unwrap();
         let invalid = format!("{header}descriptors:\n{descriptor}{descriptor}");
