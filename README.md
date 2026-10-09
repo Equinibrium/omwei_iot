@@ -116,6 +116,8 @@ These vectors verify the current encoded-integer wire representation. They do **
 
 The draft API `decimal_conversion::from_decimal` converts a plain decimal string in the descriptor's canonical physical unit into a validated atom without binary floating-point arithmetic. The current rule uses exact base-10 parsing, rounds to nearest with exact ties away from zero, accepts at most 18 fractional digits, and rejects malformed, overflowing, or out-of-range values.
 
+**Decimal conversion rules are frozen for the v0.2 draft**: `encoded = round_half_away_from_zero((value - offset) × scale_multiplier)`. The physical offset is subtracted before scaling. Changes to this rule require an explicit contract revision; this draft freeze is not a released compatibility guarantee.
+
 Fixed examples and rejection cases live in [`tests/vectors/decimal-conversion-v1.json`](tests/vectors/decimal-conversion-v1.json) and are exercised by [`tests/decimal_conversion_vectors.rs`](tests/decimal_conversion_vectors.rs). Both API and vectors remain draft until the v0.2 contract is reviewed and released.
 
 ## Compact Representation
