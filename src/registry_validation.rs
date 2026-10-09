@@ -110,14 +110,38 @@ pub fn exact_scale_multiplier(scale: &str) -> Result<i32, String> {
 }
 
 fn is_semver(version: &str) -> bool {
-    let parts: Vec<&str> = version.split('.').collect();
-    if parts.len() != 3 { return false; }
-    parts.iter().all(|part| {
+    // SemVer 2.0.0: MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD].
+    let (core_and_pre, build) = match version.split_once('+') {
+        Some((left, right)) if !right.is_empty() && !right.contains('+') => (left, Some(right)),
+        Some(_) => return false,
+        None => (version, None),
+    };
+    let (core, prerelease) = match core_and_pre.split_once('-') {
+        Some((left, right)) if !right.is_empty() => (left, Some(right)),
+        Some(_) => return false,
+        None => (core_and_pre, None),
+    };
+    let core_parts: Vec<&str> = core.split('.').collect();
+    if core_parts.len() != 3 || !core_parts.iter().all(|part| {
         !part.is_empty()
             && part.bytes().all(|b| b.is_ascii_digit())
-            && (part == &"0" || !part.starts_with('0'))
+            && (*part == "0" || !part.starts_with('0'))
             && part.parse::<u64>().is_ok()
-    })
+    }) {
+        return false;
+    }
+    let valid_identifiers = |value: &str, prerelease_mode: bool| {
+        value.split('.').all(|identifier| {
+            !identifier.is_empty()
+                && identifier.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
+                && !(prerelease_mode
+                    && identifier.bytes().all(|b| b.is_ascii_digit())
+                    && identifier.len() > 1
+                    && identifier.starts_with('0'))
+        })
+    };
+    prerelease.map_or(true, |v| valid_identifiers(v, true))
+        && build.map_or(true, |v| valid_identifiers(v, false))
 }
 
 fn nonempty(m: &serde_yaml::Mapping, key: &str) -> Result<String, String> {
@@ -185,9 +209,10 @@ descriptors:
         assert!(validate_corpus(&VALID.replace("scale: 0.001", "scale: 0.3333333333")).unwrap_err().contains("exact positive integer reciprocal"));
     }
     #[test] fn rejects_non_semver_corpus_version() {
-        for version in ["0.1", "v0.1.0", "0.01.0", "0.1.0-beta"] {
+        for version in ["0.1", "v0.1.0", "0.01.0", "0.1.0-", "0.1.0+"] {
             assert!(validate_corpus(&VALID.replace("corpus_version: \"0.1.0\"", &format!("corpus_version: \"{version}\""))).is_err());
         }
+        assert!(validate_corpus(&VALID.replace("corpus_version: \"0.1.0\"", "corpus_version: \"0.1.0-beta.1+build.7\"")).is_ok());
     }
     #[test] fn rejects_unknown_schema() {
         assert!(validate_corpus(&VALID.replace("schema_version: \"1\"", "schema_version: \"2\"")).unwrap_err().contains("unsupported schema_version"));
