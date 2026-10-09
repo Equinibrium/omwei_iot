@@ -171,7 +171,7 @@ descriptors:
       datatype: int32
       signed: true
       byte_order: big_endian
-      scale: 0.001
+      scale: "0.001"
       offset: 0
     constraints:
       min: -80000
@@ -195,7 +195,7 @@ descriptors:
 
     #[test]
     fn parser_rejects_invalid_scale_instead_of_bypassing_validation() {
-        let invalid = VALID.replace("scale: 0.001", "scale: 0.3333333333");
+        let invalid = VALID.replace("scale: \"0.001\"", "scale: \"0.3333333333\"");
         assert!(parse_corpus(&invalid).unwrap_err().contains("exact positive integer reciprocal"));
     }
 
