@@ -40,7 +40,7 @@ fn decimal_vectors_produce_exact_encoded_integers() {
     let set = vectors();
     assert_eq!(set.vector_set, "omwei-iot-decimal-conversion-v1");
     assert_eq!(set.status, "draft");
-    assert_eq!(set.valid.len(), 10);
+    assert_eq!(set.valid.len(), 13);
 
     for vector in set.valid {
         let atom = from_decimal(parse_id(&vector.descriptor_id), &vector.input)
@@ -52,7 +52,7 @@ fn decimal_vectors_produce_exact_encoded_integers() {
 #[test]
 fn invalid_decimal_vectors_fail_closed() {
     let set = vectors();
-    assert_eq!(set.invalid.len(), 11);
+    assert_eq!(set.invalid.len(), 16);
 
     for vector in set.invalid {
         let result = from_decimal(parse_id(&vector.descriptor_id), &vector.input);
