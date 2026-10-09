@@ -60,8 +60,7 @@ pub fn validate_corpus(yaml: &str) -> Result<(), String> {
         let scale = enc.get(&Value::String("scale".into())).ok_or_else(|| format!("{p}.encoding.scale must be numeric"))?;
         let scale_text = match scale {
             Value::Number(n) => n.to_string(),
-            Value::String(s) => s.clone(),
-            _ => return Err(format!("{p}.encoding.scale must be a positive decimal number")),
+            _ => return Err(format!("{p}.encoding.scale must be a positive decimal number, not a string")),
         };
         exact_scale_multiplier(&scale_text)
             .map_err(|e| format!("{p}.encoding.scale {e}"))?;
@@ -126,7 +125,6 @@ fn is_semver(version: &str) -> bool {
         !part.is_empty()
             && part.bytes().all(|b| b.is_ascii_digit())
             && (*part == "0" || !part.starts_with('0'))
-            && part.parse::<u64>().is_ok()
     }) {
         return false;
     }
