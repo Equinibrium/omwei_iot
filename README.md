@@ -104,6 +104,14 @@ The validator is also exposed as `omwei_iot::registry_validation::validate_corpu
 
 This validation contract is under review in the [v0.2 registry-contract draft](docs/REGISTRY_CONTRACT_V0.2_DRAFT.md). It is not yet a released compatibility guarantee. The current corpus filename and legacy `version` field are retained during this draft stage; the explicit `schema_version` and `corpus_version` fields are the new contract metadata.
 
+## Conformance Vectors (v0.2 draft)
+
+Fixed six-byte atom vectors are maintained in [`tests/vectors/atom-v1.json`](tests/vectors/atom-v1.json) and exercised by [`tests/conformance_vectors.rs`](tests/conformance_vectors.rs).
+
+The vectors cover all six current core descriptors, exact big-endian wire bytes, decode/encode round trips, each descriptor's encoded minimum and maximum, values immediately outside the declared range, unknown descriptor IDs, and malformed atom lengths.
+
+These vectors verify the current encoded-integer wire representation. They do **not** yet define or prove deterministic conversion from arbitrary external decimal values. Rounding, overflow, and external-value conversion remain explicit v0.2 contract work; the vector set is still marked draft.
+
 ## Compact Representation
 
 The data-plane representation is intentionally compact and deterministic.
