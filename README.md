@@ -96,6 +96,14 @@ OMWEI does not attempt to replace established semantic standards. A registry ent
 
 Descriptor IDs are immutable and must not be reused for a different meaning. Deprecated IDs remain resolvable.
 
+## Registry Validation (v0.2 draft)
+
+The corpus declares its registry identity, schema version, corpus version, and descriptor namespace. The build script validates the checked-in corpus before generating the static Rust descriptor table. Validation is offline and fails the build for duplicate IDs, unsupported lifecycle states or encodings, missing semantic/unit fields, invalid ranges, and scales the current integer codec cannot represent exactly.
+
+The validator is also exposed as `omwei_iot::registry_validation::validate_corpus` so integration tests and tooling can apply the same checks to a corpus string.
+
+This validation contract is under review in the [v0.2 registry-contract draft](docs/REGISTRY_CONTRACT_V0.2_DRAFT.md). It is not yet a released compatibility guarantee. The current corpus filename and legacy `version` field are retained during this draft stage; the explicit `schema_version` and `corpus_version` fields are the new contract metadata.
+
 ## Compact Representation
 
 The data-plane representation is intentionally compact and deterministic.
