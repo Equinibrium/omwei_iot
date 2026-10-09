@@ -1,5 +1,5 @@
 registry_id: org.omwei.core
-schema_version: 1
+schema_version: "1"
 corpus_version: "0.1.0"
 version: 0.1
 descriptors:
