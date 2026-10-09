@@ -85,8 +85,8 @@ Implementations MUST NOT rely on binary floating-point behavior to decide wire b
 
 - The input is a plain base-10 decimal string, optionally prefixed by `+` or `-`, with an optional decimal point and at least one digit before the point. Exponent notation, whitespace, a missing integer part, and a point without following fractional digits are invalid.
 - At most 18 fractional digits are accepted by this implementation profile. Implementations MUST reject unsupported precision rather than silently truncate it.
-- Conversion uses exact decimal/integer arithmetic. For a descriptor whose runtime integer scale multiplier is (S) and physical offset is (O), compute (x = (value - O) \times S).
-- Round (x) to the nearest integer. Exact halfway cases round away from zero (for example, (+0.5 \to +1), (-0.5 \to -1)).
+- Conversion uses exact decimal/integer arithmetic. Let `R` be the positive integer scale multiplier used by the runtime and `O` the physical-unit offset. Compute `encoded = round_half_away_from_zero((value - O) × R)`. Subtract the physical offset **before** multiplying by the scale.
+- Round to the nearest integer. Exact halfway cases round away from zero (for example, `+0.5 → +1` and `−0.5 → −1`).
 - Check the rounded result against the descriptor's encoded-integer `min` and `max` and the signed 32-bit range. Reject overflow and out-of-range results; never wrap, saturate, or silently clamp.
 - A producer MUST emit the resulting signed 32-bit integer in two's-complement big-endian form. Equivalent decimal spellings such as `22.5` and `22.500` MUST produce identical bytes.
 
