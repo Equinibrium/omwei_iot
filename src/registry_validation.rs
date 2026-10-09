@@ -59,11 +59,9 @@ pub fn validate_corpus(yaml: &str) -> Result<(), String> {
         if enc.get(&Value::String("signed".into())).and_then(Value::as_bool) != Some(true) {
             return Err(format!("{p}.encoding.signed must be true for int32"));
         }
-        let scale = enc.get(&Value::String("scale".into())).ok_or_else(|| format!("{p}.encoding.scale must be numeric"))?;
-        let scale_text = match scale {
-            Value::Number(n) => n.to_string(),
-            _ => return Err(format!("{p}.encoding.scale must be a positive decimal number, not a string")),
-        };
+        let scale_text = enc.get(&Value::String("scale".into())).and_then(Value::as_str)
+            .ok_or_else(|| format!("{p}.encoding.scale must be a quoted base-10 decimal string"))?
+            .to_owned();
         exact_scale_multiplier(&scale_text)
             .map_err(|e| format!("{p}.encoding.scale {e}"))?;
         enc.get(&Value::String("offset".into())).and_then(Value::as_i64).filter(|v| i32::try_from(*v).is_ok())
@@ -184,7 +182,7 @@ descriptors:
       datatype: int32
       signed: true
       byte_order: big_endian
-      scale: 0.001
+      scale: "0.001"
       offset: 0
     constraints:
       min: -80000
@@ -207,10 +205,10 @@ descriptors:
         assert!(validate_corpus(&VALID.replace("min: -80000", "min: 200000")).unwrap_err().contains("min must be <= max"));
     }
     #[test] fn rejects_zero_scale() {
-        assert!(validate_corpus(&VALID.replace("scale: 0.001", "scale: 0")).unwrap_err().contains("integer reciprocal"));
+        assert!(validate_corpus(&VALID.replace("scale: "0".001", "scale: 0")).unwrap_err().contains("integer reciprocal"));
     }
     #[test] fn rejects_approximate_reciprocal_scale() {
-        assert!(validate_corpus(&VALID.replace("scale: 0.001", "scale: 0.3333333333")).unwrap_err().contains("exact positive integer reciprocal"));
+        assert!(validate_corpus(&VALID.replace("scale: 0.001", "scale: "0.3333333333"")).unwrap_err().contains("exact positive integer reciprocal"));
     }
     #[test] fn rejects_non_semver_corpus_version() {
         for version in ["0.1", "v0.1.0", "0.01.0", "0.1.0-", "0.1.0+"] {
