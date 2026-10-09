@@ -115,7 +115,8 @@ descriptors:
 "#;
     #[test] fn accepts_valid_corpus() { assert!(validate_corpus(VALID).is_ok()); }
     #[test] fn rejects_duplicate_ids() {
-        let invalid = VALID.replace("  - id: \"0x0042\"", "  - id: \"0x0042\"\n  - id: \"0x0042\"");
+        let (header, descriptor) = VALID.split_once("descriptors:\\n").unwrap();
+        let invalid = format!("{header}descriptors:\\n{descriptor}{descriptor}");
         assert!(validate_corpus(&invalid).unwrap_err().contains("duplicate descriptor ID"));
     }
     #[test] fn rejects_unknown_status() {
