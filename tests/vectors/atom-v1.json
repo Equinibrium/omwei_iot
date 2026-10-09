@@ -1,0 +1,92 @@
+{
+  "vector_set": "omwei-iot-atom-v1",
+  "status": "draft",
+  "encoding": {
+    "atom_bytes": 6,
+    "descriptor_id": "uint16 big-endian",
+    "encoded_value": "int32 two's-complement big-endian",
+    "value_domain": "encoded integer; external-unit conversion is not tested here"
+  },
+  "valid": [
+    {
+      "name": "ambient-temperature-22_500",
+      "descriptor_id": "0x0042",
+      "label": "ambient_temperature",
+      "unit": "degree_Celsius",
+      "encoded_value": 22500,
+      "bytes_hex": "0042000057e4"
+    },
+    {
+      "name": "relative-humidity-55_500",
+      "descriptor_id": "0x0043",
+      "label": "relative_humidity",
+      "unit": "percent",
+      "encoded_value": 55500,
+      "bytes_hex": "00430000d8cc"
+    },
+    {
+      "name": "atmospheric-pressure-101325",
+      "descriptor_id": "0x0044",
+      "label": "atmospheric_pressure",
+      "unit": "pascal",
+      "encoded_value": 101325,
+      "bytes_hex": "004400018bcd"
+    },
+    {
+      "name": "active-power-1250",
+      "descriptor_id": "0x0045",
+      "label": "active_power",
+      "unit": "watt",
+      "encoded_value": 1250,
+      "bytes_hex": "0045000004e2"
+    },
+    {
+      "name": "vibration-rms-12_345",
+      "descriptor_id": "0x0046",
+      "label": "vibration_rms",
+      "unit": "millimeter_per_second",
+      "encoded_value": 12345,
+      "bytes_hex": "004600003039"
+    },
+    {
+      "name": "methane-concentration-850",
+      "descriptor_id": "0x0047",
+      "label": "methane_concentration",
+      "unit": "part_per_million",
+      "encoded_value": 850,
+      "bytes_hex": "004700000352"
+    }
+  ],
+  "invalid": [
+    {
+      "name": "unknown-descriptor",
+      "descriptor_id": "0xffff",
+      "encoded_value": 1,
+      "reason": "unknown_descriptor"
+    },
+    {
+      "name": "temperature-below-minimum",
+      "descriptor_id": "0x0042",
+      "encoded_value": -80001,
+      "reason": "value_out_of_range"
+    },
+    {
+      "name": "temperature-above-maximum",
+      "descriptor_id": "0x0042",
+      "encoded_value": 150001,
+      "reason": "value_out_of_range"
+    },
+    {
+      "name": "humidity-below-minimum",
+      "descriptor_id": "0x0043",
+      "encoded_value": -1,
+      "reason": "value_out_of_range"
+    },
+    {
+      "name": "humidity-above-maximum",
+      "descriptor_id": "0x0043",
+      "encoded_value": 100001,
+      "reason": "value_out_of_range"
+    }
+  ]
+}
