@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
+pub mod decimal_conversion;
 pub mod mapping;
 pub mod registry;
+pub mod registry_validation;
 
 pub const AMBIENT_TEMPERATURE_ID: u16 = 0x0042;
 
@@ -54,9 +56,7 @@ pub fn encode(atom: SemanticAtom) -> [u8; 6] {
 }
 
 pub fn decode(bytes: &[u8]) -> Result<SemanticAtom, &'static str> {
-    if bytes.len() != 6 {
-        return Err("invalid OMWEI atom length");
-    }
+    if bytes.len() != 6 { return Err("invalid OMWEI atom length"); }
     let descriptor_id = u16::from_be_bytes([bytes[0], bytes[1]]);
     let canonical_value = i32::from_be_bytes([bytes[2], bytes[3], bytes[4], bytes[5]]);
     SemanticAtom::new(descriptor_id, canonical_value)
@@ -93,31 +93,26 @@ mod tests {
         assert_eq!(d.label, "ambient_temperature");
         assert_eq!(d.unit, "degree_Celsius");
     }
-
     #[test]
     fn canonical_temperature_round_trip() {
         let atom = SemanticAtom::new(AMBIENT_TEMPERATURE_ID, 22_500).unwrap();
         assert_eq!(decode(&encode(atom)).unwrap(), atom);
     }
-
     #[test]
     fn deterministic_big_endian_encoding() {
         let atom = SemanticAtom::new(AMBIENT_TEMPERATURE_ID, 22_500).unwrap();
         assert_eq!(encode(atom), [0x00, 0x42, 0x00, 0x00, 0x57, 0xE4]);
     }
-
     #[test]
     fn historical_128_bit_target_is_16_bytes() {
         let atom = SemanticAtom::new(AMBIENT_TEMPERATURE_ID, 22_500).unwrap();
         assert_eq!(encode_128(atom).len(), 16);
         assert_eq!(&encode_128(atom)[..6], &encode(atom));
     }
-
     #[test]
     fn unknown_descriptor_is_rejected() {
         assert!(SemanticAtom::new(0xFFFF, 1).is_err());
     }
-
     #[test]
     fn json_fixture_has_same_semantic_value() {
         let j = json_observation();

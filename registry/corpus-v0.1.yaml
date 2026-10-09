@@ -1,6 +1,10 @@
+registry_id: org.omwei.core
+schema_version: "1"
+corpus_version: "0.1.0"
 version: 0.1
 descriptors:
-  - id: 0x0042
+  - id: "0x0042"
+    namespace: core
     status: active
     version: 1
     label: ambient_temperature
@@ -16,13 +20,14 @@ descriptors:
       datatype: int32
       signed: true
       byte_order: big_endian
-      scale: 0.001
+      scale: "0.001"
       offset: 0
     constraints:
       min: -80000
       max: 150000
 
-  - id: 0x0043
+  - id: "0x0043"
+    namespace: core
     status: active
     version: 1
     label: relative_humidity
@@ -38,13 +43,14 @@ descriptors:
       datatype: int32
       signed: true
       byte_order: big_endian
-      scale: 0.001
+      scale: "0.001"
       offset: 0
     constraints:
       min: 0
       max: 100000
 
-  - id: 0x0044
+  - id: "0x0044"
+    namespace: core
     status: active
     version: 1
     label: atmospheric_pressure
@@ -60,13 +66,14 @@ descriptors:
       datatype: int32
       signed: true
       byte_order: big_endian
-      scale: 1
+      scale: "1"
       offset: 0
     constraints:
       min: 0
       max: 200000
 
-  - id: 0x0045
+  - id: "0x0045"
+    namespace: core
     status: active
     version: 1
     label: active_power
@@ -82,13 +89,14 @@ descriptors:
       datatype: int32
       signed: true
       byte_order: big_endian
-      scale: 1
+      scale: "1"
       offset: 0
     constraints:
       min: 0
       max: 100000000
 
-  - id: 0x0046
+  - id: "0x0046"
+    namespace: core
     status: active
     version: 1
     label: vibration_rms
@@ -104,13 +112,14 @@ descriptors:
       datatype: int32
       signed: true
       byte_order: big_endian
-      scale: 0.001
+      scale: "0.001"
       offset: 0
     constraints:
       min: 0
       max: 1000000
 
-  - id: 0x0047
+  - id: "0x0047"
+    namespace: core
     status: active
     version: 1
     label: methane_concentration
@@ -126,7 +135,7 @@ descriptors:
       datatype: int32
       signed: true
       byte_order: big_endian
-      scale: 1
+      scale: "1"
       offset: 0
     constraints:
       min: 0
