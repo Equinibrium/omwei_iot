@@ -107,7 +107,8 @@ A corpus validator MUST reject at least:
 - unknown lifecycle statuses;
 - empty registry identity or corpus version;
 - invalid ranges where `min > max`;
-- zero or invalid scales, including scales whose exact reciprocal is not a positive integer representable by the runtime codec;\n- unquoted descriptor IDs or non-string scale values;
+- zero or invalid scales, including scales whose exact reciprocal is not a positive integer representable by the runtime codec;
+- unquoted descriptor IDs or non-string scale values;
 - descriptors whose required semantic identity or canonical unit is missing;
 - malformed external vocabulary mappings;
 - changes that violate the declared compatibility policy.
