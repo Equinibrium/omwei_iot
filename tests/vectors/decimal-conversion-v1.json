@@ -16,7 +16,7 @@
       "encoded_value": 22500
     },
     {
-      "name": "temperature-positive-half-up",
+      "name": "temperature-positive-halfway-away-from-zero",
       "descriptor_id": "0x0042",
       "input": "0.0005",
       "encoded_value": 1
@@ -28,13 +28,13 @@
       "encoded_value": -1
     },
     {
-      "name": "temperature-half-up-positive",
+      "name": "temperature-positive-halfway-away-from-zero-offset",
       "descriptor_id": "0x0042",
       "input": "22.5005",
       "encoded_value": 22501
     },
     {
-      "name": "temperature-half-away-negative",
+      "name": "temperature-negative-halfway-away-from-zero",
       "descriptor_id": "0x0042",
       "input": "-22.5005",
       "encoded_value": -22501

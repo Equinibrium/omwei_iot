@@ -92,6 +92,8 @@ Implementations MUST NOT rely on binary floating-point behavior to decide wire b
 
 This rule is implemented in `decimal_conversion::from_decimal` and covered by the draft vectors in `tests/vectors/decimal-conversion-v1.json`. The vector set is a draft conformance target, not yet a released compatibility guarantee.
 
+Numeric interpretation rules in this section are frozen for the v0.2 draft; changes require a new draft revision.
+
 An unknown descriptor ID MUST be rejected or surfaced as unknown. A consumer MUST NOT guess a unit or infer meaning from the numeric ID or label alone.
 
 ## 6. Corpus validation requirements

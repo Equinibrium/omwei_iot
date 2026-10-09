@@ -110,7 +110,7 @@ Fixed six-byte atom vectors are maintained in [`tests/vectors/atom-v1.json`](tes
 
 The vectors cover all six current core descriptors, exact big-endian wire bytes, decode/encode round trips, each descriptor's encoded minimum and maximum, values immediately outside the declared range, unknown descriptor IDs, and malformed atom lengths.
 
-These vectors verify the current encoded-integer wire representation. They do **not** yet define or prove deterministic conversion from arbitrary external decimal values. Rounding, overflow, and external-value conversion remain explicit v0.2 contract work; the vector set is still marked draft.
+These vectors verify the current encoded-integer wire representation. Deterministic conversion from decimal strings is specified separately by the decimal-conversion vectors below; both vector sets remain draft conformance targets, not released compatibility guarantees.
 
 ## Deterministic Decimal Conversion (v0.2 draft)
 
