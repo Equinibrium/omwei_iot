@@ -3,7 +3,7 @@ schema_version: "1"
 corpus_version: "0.1.0"
 version: 0.1
 descriptors:
-  - id: 0x0042
+  - id: "0x0042"
     namespace: core
     status: active
     version: 1
@@ -26,7 +26,7 @@ descriptors:
       min: -80000
       max: 150000
 
-  - id: 0x0043
+  - id: "0x0043"
     namespace: core
     status: active
     version: 1
@@ -49,7 +49,7 @@ descriptors:
       min: 0
       max: 100000
 
-  - id: 0x0044
+  - id: "0x0044"
     namespace: core
     status: active
     version: 1
@@ -72,7 +72,7 @@ descriptors:
       min: 0
       max: 200000
 
-  - id: 0x0045
+  - id: "0x0045"
     namespace: core
     status: active
     version: 1
@@ -95,7 +95,7 @@ descriptors:
       min: 0
       max: 100000000
 
-  - id: 0x0046
+  - id: "0x0046"
     namespace: core
     status: active
     version: 1
@@ -118,7 +118,7 @@ descriptors:
       min: 0
       max: 1000000
 
-  - id: 0x0047
+  - id: "0x0047"
     namespace: core
     status: active
     version: 1
