@@ -50,7 +50,7 @@ fn fixed_vectors_match_registry_and_wire_bytes() {
     let set = vectors();
     assert_eq!(set.vector_set, "omwei-iot-atom-v1");
     assert_eq!(set.status, "draft");
-    assert_eq!(set.valid.len(), 6);
+    assert_eq!(set.valid.len(), 18);
 
     for vector in set.valid {
         let id = parse_id(&vector.descriptor_id);
@@ -70,7 +70,7 @@ fn fixed_vectors_match_registry_and_wire_bytes() {
 #[test]
 fn invalid_vectors_are_rejected() {
     let set = vectors();
-    assert_eq!(set.invalid.len(), 5);
+    assert_eq!(set.invalid.len(), 17);
 
     for vector in set.invalid {
         let id = parse_id(&vector.descriptor_id);
