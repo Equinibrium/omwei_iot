@@ -98,7 +98,7 @@ Descriptor IDs are immutable and must not be reused for a different meaning. Dep
 
 ## Registry Validation (v0.2 draft)
 
-The corpus declares its registry identity, schema version, corpus version, and descriptor namespace. The build script validates the checked-in corpus before generating the static Rust descriptor table. Validation is offline and fails the build for duplicate IDs, unsupported lifecycle states or encodings, missing semantic/unit fields, invalid ranges, and scales the current integer codec cannot represent exactly.
+The corpus declares its registry identity, schema version, corpus version, and descriptor namespace. The build script validates the checked-in corpus before generating the static Rust descriptor table. Validation is offline and fails the build for duplicate IDs, unsupported lifecycle states or encodings, missing semantic/unit fields, invalid ranges, and scales the current integer codec cannot represent exactly. Descriptor IDs and decimal scales are quoted strings in the corpus so YAML numeric coercion cannot change their interpretation.
 
 The validator is also exposed as `omwei_iot::registry_validation::validate_corpus` so integration tests and tooling can apply the same checks to a corpus string.
 
