@@ -79,7 +79,7 @@ For the current encoding model, a descriptor's decimal `scale` and `offset` defi
 
 The encoded integer is the value carried in the atom. For example, descriptor `0x0042` uses scale `0.001`; integer `22500` therefore represents `22.500 degree_Celsius`.
 
-The corpus MUST define the unit, scale, offset, valid encoded-integer range, and rounding/conversion rule for every descriptor. The current prototype's integer `min` and `max` constraints apply to the encoded integer unless a future schema explicitly distinguishes encoded-domain and physical-domain constraints.
+The corpus MUST define the unit, scale, offset, valid encoded-integer range, and rounding/conversion rule for every descriptor. In this draft schema, `encoding.scale` MUST be a quoted plain base-10 decimal string (for example, `"0.001"`); this preserves its exact spelling and avoids YAML numeric coercion. The current prototype's integer `min` and `max` constraints apply to the encoded integer unless a future schema explicitly distinguishes encoded-domain and physical-domain constraints.
 
 Implementations MUST NOT rely on binary floating-point behavior to decide wire bytes. The current v0.2 draft conversion rule is:
 
@@ -107,7 +107,7 @@ A corpus validator MUST reject at least:
 - unknown lifecycle statuses;
 - empty registry identity or corpus version;
 - invalid ranges where `min > max`;
-- zero or invalid scales;
+- zero or invalid scales, including scales whose exact reciprocal is not a positive integer representable by the runtime codec;\n- unquoted descriptor IDs or non-string scale values;
 - descriptors whose required semantic identity or canonical unit is missing;
 - malformed external vocabulary mappings;
 - changes that violate the declared compatibility policy.
