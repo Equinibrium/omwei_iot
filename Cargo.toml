@@ -21,8 +21,12 @@ path = "src/bin/omwei.rs"
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"
 
+[features]
+default = ["std"]
+std = ["dep:serde", "dep:serde_json", "dep:serde_cbor", "dep:serde_yaml"]
+
 [dependencies]
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-serde_cbor = "0.11"
-serde_yaml = "0.9"
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
+serde_cbor = { version = "0.11", optional = true }
+serde_yaml = { version = "0.9", optional = true }
