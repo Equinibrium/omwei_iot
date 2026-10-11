@@ -109,27 +109,30 @@ fn validate(config: &Config) -> Result<(), String> {
 }
 
 fn js_adapter(config: &Config) -> String {
-    let mut out = format!(
-        "// Generated; do not edit. Descriptor {} = {} in {}.\n\
-         function roundHalfAwayFromZero(n, d) {{\n\
-         \  const sign = n < 0 ? -1 : 1;\n\
-         \  const a = Math.abs(n);\n\
-         \  return sign * (Math.floor(a / d) + ((a % d) * 2 >= d ? 1 : 0));\n\
-         }}\n\n\
-         function normalizeUplink(input) {{\n\
-         \  const payload = (input && input.data && input.data.payload) || (input && input.data) || {{}};\n\
-         \  const matches = [];\n",
-        config.descriptor.id, config.descriptor.semantic, config.descriptor.canonical_unit
-    );
+    let mut out = String::from(r#"// Generated; do not edit.
+function roundHalfAwayFromZero(n, d) {
+  const sign = n < 0 ? -1 : 1;
+  const a = Math.abs(n);
+  return sign * (Math.floor(a / d) + ((a % d) * 2 >= d ? 1 : 0));
+}
+
+function normalizeUplink(input) {
+  const payload = (input && input.data && input.data.payload) || (input && input.data) || {};
+  const matches = [];
+"#);
     for (index, profile) in config.profiles.iter().enumerate() {
         out.push_str(&format!(
             "  if (Object.prototype.hasOwnProperty.call(payload, {:?})) matches.push({{ index: {index}, raw: payload[{:?}] }}); // {}\n",
             profile.field, profile.field, profile.name
         ));
     }
-    out.push_str(
-        "  if (matches.length !== 1) return { data: {}, errors: [matches.length === 0 ? 'missing recognized source field' : 'ambiguous source fields'] };\n         \  const match = matches[0];\n         \  if (!Number.isSafeInteger(match.raw)) return { data: {}, errors: ['source value must be a safe integer'] };\n         \  let numerator;\n  let denominator;\n  switch (match.index) {\n"
-    );
+    out.push_str(r#"  if (matches.length !== 1) return { data: {}, errors: [matches.length === 0 ? 'missing recognized source field' : 'ambiguous source fields'] };
+  const match = matches[0];
+  if (!Number.isSafeInteger(match.raw)) return { data: {}, errors: ['source value must be a safe integer'] };
+  let numerator;
+  let denominator;
+  switch (match.index) {
+"#);
     for (index, profile) in config.profiles.iter().enumerate() {
         out.push_str(&format!(
             "    case {index}: numerator = (match.raw + {}) * {}; denominator = {}; break;\n",
@@ -137,35 +140,37 @@ fn js_adapter(config: &Config) -> String {
         ));
     }
     out.push_str(&format!(
-        "    default: return {{ data: {{}}, errors: ['unknown profile'] }};\n  }}\n\
-         \  if (!Number.isSafeInteger(numerator)) return {{ data: {{}}, errors: ['conversion exceeds safe integer range'] }};\n\
-         \  const canonical = roundHalfAwayFromZero(numerator, denominator);\n\
-         \  if (canonical < {} || canonical > {}) return {{ data: {{}}, errors: ['canonical value outside descriptor range'] }};\n\
-         \  return {{ data: {{ {:?}: canonical }} }};\n}}\n",
+        "    default: return {{ data: {{}}, errors: ['unknown profile'] }};\n  }}\n  if (!Number.isSafeInteger(numerator)) return {{ data: {{}}, errors: ['conversion exceeds safe integer range'] }};\n  const canonical = roundHalfAwayFromZero(numerator, denominator);\n  if (canonical < {} || canonical > {}) return {{ data: {{}}, errors: ['canonical value outside descriptor range'] }};\n  return {{ data: {{ {:?}: canonical }} }};\n}}\n",
         config.descriptor.minimum, config.descriptor.maximum, config.descriptor.output_field
     ));
-    out.replace("\\  ", "  ")
+    out
 }
 
 fn starlark_adapter(config: &Config) -> String {
-    let mut out = String::from(
-        "# Generated; do not edit. Canonical output is an integer in millidegrees Celsius.\n\
-         def round_half_away_from_zero(n, d):\n\
-         \    sign = -1 if n < 0 else 1\n\
-         \    a = -n if n < 0 else n\n\
-         \    return sign * (a // d + (1 if (a % d) * 2 >= d else 0))\n\n\
-         def apply(metric):\n\
-         \    matches = []\n"
-    );
+    let mut out = String::from(r#"# Generated; do not edit. Canonical output is an integer in millidegrees Celsius.
+def round_half_away_from_zero(n, d):
+    sign = -1 if n < 0 else 1
+    a = -n if n < 0 else n
+    return sign * (a // d + (1 if (a % d) * 2 >= d else 0))
+
+def apply(metric):
+    matches = []
+"#);
     for (index, profile) in config.profiles.iter().enumerate() {
         out.push_str(&format!(
             "    raw_{index} = metric.fields.get({:?})\n    if raw_{index} != None:\n        matches.append(({index}, raw_{index}))\n",
             profile.field
         ));
     }
-    out.push_str(
-        "    if len(matches) != 1:\n        metric.fields['omwei_error'] = 'missing or ambiguous source fields'\n        return metric\n         \    source_index, raw = matches[0]\n         \    if type(raw) != 'int':\n        metric.fields['omwei_error'] = 'source value must be integer'\n        return metric\n         \    canonical = None\n"
-    );
+    out.push_str(r#"    if len(matches) != 1:
+        metric.fields['omwei_error'] = 'missing or ambiguous source fields'
+        return metric
+    source_index, raw = matches[0]
+    if type(raw) != 'int':
+        metric.fields['omwei_error'] = 'source value must be integer'
+        return metric
+    canonical = None
+"#);
     for (index, profile) in config.profiles.iter().enumerate() {
         out.push_str(&format!(
             "    {} source_index == {index}:\n        canonical = round_half_away_from_zero((raw + {}) * {}, {})\n",
@@ -174,10 +179,10 @@ fn starlark_adapter(config: &Config) -> String {
         ));
     }
     out.push_str(&format!(
-        "    if canonical < {} or canonical > {}:\n        metric.fields['omwei_error'] = 'canonical value outside descriptor range'\n        return metric\n         \    metric.fields[{:?}] = canonical\n         \    if 'omwei_error' in metric.fields:\n        del metric.fields['omwei_error']\n         \    return metric\n",
+        "    if canonical < {} or canonical > {}:\n        metric.fields['omwei_error'] = 'canonical value outside descriptor range'\n        return metric\n    metric.fields[{:?}] = canonical\n    if 'omwei_error' in metric.fields:\n        del metric.fields['omwei_error']\n    return metric\n",
         config.descriptor.minimum, config.descriptor.maximum, config.descriptor.output_field
     ));
-    out.replace("\\    ", "    ")
+    out
 }
 
 fn vectors_json(config: &Config) -> String {
