@@ -157,7 +157,7 @@ def apply(metric):
     matches = []
 "#);
     out.push_str(&format!(
-        "    if {:?} in metric.fields:\n        del metric.fields[{:?}]\n",
+        "    metric.fields.pop({:?}, None)\n",
         config.descriptor.output_field, config.descriptor.output_field
     ));
     for (index, profile) in config.profiles.iter().enumerate() {
@@ -183,7 +183,7 @@ def apply(metric):
         ));
     }
     out.push_str(&format!(
-        "    if canonical < {} or canonical > {}:\n        metric.fields['omwei_error'] = 'canonical value outside descriptor range'\n        return metric\n    metric.fields[{:?}] = canonical\n    if 'omwei_error' in metric.fields:\n        del metric.fields['omwei_error']\n    return metric\n",
+        "    if canonical < {} or canonical > {}:\n        metric.fields['omwei_error'] = 'canonical value outside descriptor range'\n        return metric\n    metric.fields[{:?}] = canonical\n    metric.fields.pop('omwei_error', None)\n    return metric\n",
         config.descriptor.minimum, config.descriptor.maximum, config.descriptor.output_field
     ));
     out
