@@ -61,6 +61,21 @@ jobs:
                 path = "temp_f_dF"
                 type = "int"
 
+          [[inputs.exec]]
+            commands = ["printf '{\"temp_c_dC\":235,\"temp_f_dF\":743,\"ambient_temperature_mC\":999}'"]
+            timeout = "5s"
+            data_format = "json_v2"
+            [[inputs.exec.json_v2]]
+              [[inputs.exec.json_v2.field]]
+                path = "temp_c_dC"
+                type = "int"
+              [[inputs.exec.json_v2.field]]
+                path = "temp_f_dF"
+                type = "int"
+              [[inputs.exec.json_v2.field]]
+                path = "ambient_temperature_mC"
+                type = "int"
+
           [[processors.starlark]]
             source = '''
           TELEGRAF_HEAD
@@ -74,7 +89,8 @@ jobs:
             telegraf:1.36 \
             --config /tmp/omwei/telegraf-adapter-smoke.conf --test \
             | tee "$RUNNER_TEMP/telegraf-adapter-smoke.out"
-          grep -q "ambient_temperature_mC=23500i" "$RUNNER_TEMP/telegraf-adapter-smoke.out"
+          test "$(grep -c "ambient_temperature_mC=23500i" "$RUNNER_TEMP/telegraf-adapter-smoke.out")" -eq 2
+          grep -q 'omwei_error="missing or ambiguous source fields"' "$RUNNER_TEMP/telegraf-adapter-smoke.out"
       - name: Run benchmark
         run: cargo run --release --bin benchmark
 
