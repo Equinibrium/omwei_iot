@@ -1,3 +1,3 @@
-Benchmark commit: 417b02b9a21174aed16fd5eacf60f83438cd6380
-Workflow run: 37832900275
-Generated: 2026-10-08T19:34:18Z
+Benchmark commit: 135bd1f981c10b4c53a1257d2678e48280ed0959
+Workflow run: 38133665576
+Generated: 2026-10-11T10:55:23Z
