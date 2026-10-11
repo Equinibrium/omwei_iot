@@ -44,6 +44,7 @@ def generate(vectors_path, starlark_path, output_path):
         {"temp_c_dC": "235"},
         {"ambient_temperature_mC": 999},
         {"temp_c_dC": 9_007_199_254_740_991},
+        {"temp_c_dC": 9_223_372_036_854_775_807},
     ])
 
     blocks = [input_block(payload) for payload in payloads]
@@ -72,6 +73,7 @@ def assert_output(vectors_path, output_path):
         "missing or ambiguous source fields": 2,
         "source value must be integer": 1,
         "canonical value outside descriptor range": 2,
+        "conversion exceeds integer range": 1,
     })
 
     if actual_values != expected_values:
