@@ -37,8 +37,8 @@ jobs:
         run: |
           cargo run --release --bin adapter_generator -- examples/adapter-poc/registry.yaml "$RUNNER_TEMP/omwei-adapter-poc"
           node --check "$RUNNER_TEMP/omwei-adapter-poc/tts_normalize_uplink.js"
-          node tests/adapter_poc_smoke.js "$RUNNER_TEMP/omwei-adapter-poc/tts_normalize_uplink.js"
           python -m json.tool "$RUNNER_TEMP/omwei-adapter-poc/test_vectors.json" > /dev/null
+          node tests/adapter_poc_smoke.js "$RUNNER_TEMP/omwei-adapter-poc/tts_normalize_uplink.js" "$RUNNER_TEMP/omwei-adapter-poc/test_vectors.json"
           grep -q "ambient_temperature_mC" "$RUNNER_TEMP/omwei-adapter-poc/tts_normalize_uplink.js"
           grep -q "ambient_temperature_mC" "$RUNNER_TEMP/omwei-adapter-poc/telegraf_starlark.star"
           {
