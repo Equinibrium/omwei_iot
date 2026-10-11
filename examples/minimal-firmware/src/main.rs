@@ -4,7 +4,6 @@
 use core::panic::PanicInfo;
 use cortex_m_rt::entry;
 use omwei_iot::{decode, encode, SemanticAtom, AMBIENT_TEMPERATURE_ID};
-use panic_halt as _;
 
 #[entry]
 fn main() -> ! {
