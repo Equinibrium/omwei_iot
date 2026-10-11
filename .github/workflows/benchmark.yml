@@ -62,7 +62,7 @@ jobs:
                 type = "int"
 
           [[inputs.exec]]
-            commands = ["printf '{\\"temp_c_dC\\":-125}'"]
+            commands = ["printf '{\"temp_c_dC\":-125}'"]
             timeout = "5s"
             data_format = "json_v2"
             [[inputs.exec.json_v2]]
@@ -71,7 +71,7 @@ jobs:
                 type = "int"
 
           [[inputs.exec]]
-            commands = ["printf '{\\"temp_f_dF\\":320}'"]
+            commands = ["printf '{\"temp_f_dF\":320}'"]
             timeout = "5s"
             data_format = "json_v2"
             [[inputs.exec.json_v2]]
@@ -80,7 +80,7 @@ jobs:
                 type = "int"
 
           [[inputs.exec]]
-            commands = ["printf '{\\"temp_f_dF\\":742}'"]
+            commands = ["printf '{\"temp_f_dF\":742}'"]
             timeout = "5s"
             data_format = "json_v2"
             [[inputs.exec.json_v2]]
