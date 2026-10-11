@@ -41,120 +41,18 @@ jobs:
           node tests/adapter_poc_smoke.js "$RUNNER_TEMP/omwei-adapter-poc/tts_normalize_uplink.js" "$RUNNER_TEMP/omwei-adapter-poc/test_vectors.json"
           grep -q "ambient_temperature_mC" "$RUNNER_TEMP/omwei-adapter-poc/tts_normalize_uplink.js"
           grep -q "ambient_temperature_mC" "$RUNNER_TEMP/omwei-adapter-poc/telegraf_starlark.star"
-          {
-            cat <<'TELEGRAF_HEAD'
-          [[inputs.exec]]
-            commands = ["printf '{\"temp_c_dC\":235}'"]
-            timeout = "5s"
-            data_format = "json_v2"
-            [[inputs.exec.json_v2]]
-              [[inputs.exec.json_v2.field]]
-                path = "temp_c_dC"
-                type = "int"
-
-          [[inputs.exec]]
-            commands = ["printf '{\"temp_f_dF\":743}'"]
-            timeout = "5s"
-            data_format = "json_v2"
-            [[inputs.exec.json_v2]]
-              [[inputs.exec.json_v2.field]]
-                path = "temp_f_dF"
-                type = "int"
-
-          [[inputs.exec]]
-            commands = ["printf '{\"temp_c_dC\":-125}'"]
-            timeout = "5s"
-            data_format = "json_v2"
-            [[inputs.exec.json_v2]]
-              [[inputs.exec.json_v2.field]]
-                path = "temp_c_dC"
-                type = "int"
-
-          [[inputs.exec]]
-            commands = ["printf '{\"temp_f_dF\":320}'"]
-            timeout = "5s"
-            data_format = "json_v2"
-            [[inputs.exec.json_v2]]
-              [[inputs.exec.json_v2.field]]
-                path = "temp_f_dF"
-                type = "int"
-
-          [[inputs.exec]]
-            commands = ["printf '{\"temp_f_dF\":742}'"]
-            timeout = "5s"
-            data_format = "json_v2"
-            [[inputs.exec.json_v2]]
-              [[inputs.exec.json_v2.field]]
-                path = "temp_f_dF"
-                type = "int"
-
-          [[inputs.exec]]
-            commands = ["printf '{\"temp_c_dC\":235,\"temp_f_dF\":743,\"ambient_temperature_mC\":999}'"]
-            timeout = "5s"
-            data_format = "json_v2"
-            [[inputs.exec.json_v2]]
-              [[inputs.exec.json_v2.field]]
-                path = "temp_c_dC"
-                type = "int"
-              [[inputs.exec.json_v2.field]]
-                path = "temp_f_dF"
-                type = "int"
-              [[inputs.exec.json_v2.field]]
-                path = "ambient_temperature_mC"
-                type = "int"
-
-          [[inputs.exec]]
-            commands = ["printf '{\"temp_c_dC\":1000000}'"]
-            timeout = "5s"
-            data_format = "json_v2"
-            [[inputs.exec.json_v2]]
-              [[inputs.exec.json_v2.field]]
-                path = "temp_c_dC"
-                type = "int"
-
-          [[inputs.exec]]
-            commands = ["printf '{\"temp_c_dC\":\"235\"}'"]
-            timeout = "5s"
-            data_format = "json_v2"
-            [[inputs.exec.json_v2]]
-              [[inputs.exec.json_v2.field]]
-                path = "temp_c_dC"
-                type = "string"
-
-          [[inputs.exec]]
-            commands = ["printf '{\"ambient_temperature_mC\":999}'"]
-            timeout = "5s"
-            data_format = "json_v2"
-            [[inputs.exec.json_v2]]
-              [[inputs.exec.json_v2.field]]
-                path = "ambient_temperature_mC"
-                type = "int"
-
-          [[processors.starlark]]
-            source = '''
-          TELEGRAF_HEAD
-            cat "$RUNNER_TEMP/omwei-adapter-poc/telegraf_starlark.star"
-            cat <<'TELEGRAF_TAIL'
-          '''
-          TELEGRAF_TAIL
-          } > "$RUNNER_TEMP/telegraf-adapter-smoke.conf"
+          python tests/telegraf_adapter_smoke.py generate \
+            "$RUNNER_TEMP/omwei-adapter-poc/test_vectors.json" \
+            "$RUNNER_TEMP/omwei-adapter-poc/telegraf_starlark.star" \
+            "$RUNNER_TEMP/telegraf-adapter-smoke.conf"
           docker run --rm \
             -v "$RUNNER_TEMP:/tmp/omwei:ro" \
             telegraf:1.36 \
             --config /tmp/omwei/telegraf-adapter-smoke.conf --test \
             | tee "$RUNNER_TEMP/telegraf-adapter-smoke.out"
-          # Two valid profiles must normalize to the same canonical value.
-          test "$(grep -c "ambient_temperature_mC=23500i" "$RUNNER_TEMP/telegraf-adapter-smoke.out")" -eq 2
-          test "$(grep -c "ambient_temperature_mC=-12500i" "$RUNNER_TEMP/telegraf-adapter-smoke.out")" -eq 1
-          test "$(grep -c "ambient_temperature_mC=0i" "$RUNNER_TEMP/telegraf-adapter-smoke.out")" -eq 1
-          test "$(grep -c "ambient_temperature_mC=23444i" "$RUNNER_TEMP/telegraf-adapter-smoke.out")" -eq 1
-          # The ambiguous payload, canonical-field injection with sources, and canonical-only
-          # payload must all be rejected.
-          test "$(grep -c 'omwei_error="missing or ambiguous source fields"' "$RUNNER_TEMP/telegraf-adapter-smoke.out")" -eq 2
-          grep -q 'omwei_error="source value must be integer"' "$RUNNER_TEMP/telegraf-adapter-smoke.out"
-          grep -q 'omwei_error="canonical value outside descriptor range"' "$RUNNER_TEMP/telegraf-adapter-smoke.out"
-          # A caller-supplied canonical output must never survive normalization.
-          ! grep -q 'ambient_temperature_mC=999i' "$RUNNER_TEMP/telegraf-adapter-smoke.out"
+          python tests/telegraf_adapter_smoke.py assert \
+            "$RUNNER_TEMP/omwei-adapter-poc/test_vectors.json" \
+            "$RUNNER_TEMP/telegraf-adapter-smoke.out"
       - name: Run benchmark
         run: cargo run --release --bin benchmark
 
