@@ -14,15 +14,11 @@ vm.runInNewContext(source, context, { filename: generatedPath });
 assert.equal(typeof context.normalizeUplink, "function");
 
 // Execute the generator-emitted vectors against the generated JavaScript adapter.
-const sourceFieldByProfile = {
-  vendor_a_deci_celsius: "temp_c_dC",
-  vendor_b_deci_fahrenheit: "temp_f_dF",
-};
 assert.ok(Array.isArray(vectors.vectors) && vectors.vectors.length > 0);
 for (const vector of vectors.vectors) {
-  const field = sourceFieldByProfile[vector.profile];
-  assert.ok(field, `unmapped vector profile: ${vector.profile}`);
-  const result = context.normalizeUplink({ data: { [field]: vector.raw } });
+  assert.equal(typeof vector.profile, "string");
+  assert.equal(typeof vector.field, "string");
+  const result = context.normalizeUplink({ data: { [vector.field]: vector.raw } });
   assert.deepEqual(JSON.parse(JSON.stringify(result)), {
     data: { ambient_temperature_mC: vector.expected_milli_celsius },
   }, JSON.stringify(vector));
