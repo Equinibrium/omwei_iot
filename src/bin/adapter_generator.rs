@@ -158,7 +158,7 @@ def apply(metric):
 "#);
     out.push_str(&format!(
         "    metric.fields.pop({:?}, None)\n",
-        config.descriptor.output_field, config.descriptor.output_field
+        config.descriptor.output_field
     ));
     for (index, profile) in config.profiles.iter().enumerate() {
         out.push_str(&format!(
