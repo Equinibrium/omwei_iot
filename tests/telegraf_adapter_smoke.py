@@ -60,7 +60,7 @@ def assert_output(vectors_path, output_path):
     actual_values = Counter()
     actual_errors = Counter()
     for line in output:
-        value_match = re.search(r"(?:^|,)ambient_temperature_mC=(-?\d+)i(?:,| )", line)
+        value_match = re.search(r"(?:^|[ ,])ambient_temperature_mC=(-?\d+)i(?:,| )", line)
         if value_match:
             actual_values[int(value_match.group(1))] += 1
         error_match = re.search(r'omwei_error="([^"]+)"', line)
