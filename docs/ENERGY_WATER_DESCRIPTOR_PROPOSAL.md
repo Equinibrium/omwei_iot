@@ -27,11 +27,24 @@ IDs are placeholders, so wire bytes are illustrative only and must not be frozen
 | cumulative_water_volume | 1.234 m3 | 1234 | 0049000004D2 |
 | water_volume_flow_rate | 12.345 L/s | 12345 | 004A00003039 |
 
-Required additional tests: zero; one scale step; exact half-step rounding according to the contract; encoded minimum and maximum; one value below/above each valid range; negative values for monotonic counters; unknown ID; exact round-trip bytes. For each descriptor, the test must assert both encoded integer and six wire bytes.
+The companion JSON file `docs/vectors/energy-water-proposal-v1.json` contains expanded illustrative vectors and rejection/lifecycle scenarios. All vectors must be updated if IDs, scales, units, or valid ranges change. They are proposal fixtures, not released conformance guarantees.
 
 ## Counter lifecycle proposal
 
 A counter reset, rollover, meter replacement, or correction must not silently look like a negative consumption delta. Consumers should detect a lower reading and mark the interval as discontinuous/invalid for ordinary delta calculation unless a separately defined source event explains the transition. The descriptor itself remains unchanged. The Semantic Record or source lifecycle metadata should identify reset/replacement/correction and, where available, counter epoch or meter identity. Do not infer rollover by arithmetic alone unless the meter's modulus and rollover behavior are explicitly known. Delta computation across an unexplained decrease must fail closed or be flagged, never silently wrap.
+
+## QUDT mapping and validation policy (proposal)
+
+Do not require the quantity-kind page and unit page to display identical reciprocal lists as a condition of validity. QUDT distinguishes properties that enumerate all applicable unit/quantity-kind pairs from narrower inverse relationships: in particular, the schema documentation says `qudt:isQuantityKindOf` is the strict inverse of `qudt:hasQuantityKind`, and does not enumerate every allowed unit/quantity-kind pair; `qudt:applicableUnit` is the property intended to express those applicable pairs.
+
+For this proposal, an automated QUDT audit should:
+1. resolve both the quantity-kind IRI and unit IRI independently;
+2. use the quantity kind's `applicableUnit` relation, when present in the selected QUDT release, as the primary positive pairing check;
+3. check dimensional compatibility and known quantity-kind specialization relationships;
+4. report missing or contradictory metadata for manual review rather than infer meaning from labels or require simplistic bidirectional page-list equality;
+5. record the QUDT release/version used by the audit so results are reproducible offline.
+
+This is an OMWEI validation policy proposal, not a claim that QUDT pages alone settle meter-specific suitability. The water units and device ranges still require confirmation against actual target meters.
 
 ## Open project decisions
 
@@ -50,3 +63,4 @@ A counter reset, rollover, meter replacement, or correction must not silently lo
 - http://qudt.org/vocab/unit/M3
 - http://qudt.org/vocab/quantitykind/VolumeFlowRate
 - http://qudt.org/vocab/unit/L-PER-SEC
+- QUDT schema documentation: https://www.qudt.org/doc/2026/01/DOC_SCHEMA-QUDT.html
