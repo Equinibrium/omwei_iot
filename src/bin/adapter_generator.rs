@@ -279,6 +279,7 @@ mod tests {
         assert!(js.contains("temp_c_dC"));
         assert!(js.contains("temp_f_dF"));
         assert!(starlark.contains("def apply(metric):"));
+        assert!(starlark.contains("conversion exceeds integer range"));
         assert!(starlark.contains("temp_c_dC"));
         assert!(starlark.contains("temp_f_dF"));
         assert!(starlark.contains("metric.fields.pop(\"ambient_temperature_mC\", None)"));
