@@ -199,7 +199,7 @@ fn vectors_json(config: &Config) -> String {
     for profile in &config.profiles {
         for vector in &profile.vectors {
             rows.push(format!(
-                "    {{\\"profile\\": {:?}, \\"field\\": {:?}, \\"raw\\": {}, \\"expected_milli_celsius\\": {}}}",
+                "    {{\"profile\": {:?}, \"field\": {:?}, \"raw\": {}, \"expected_milli_celsius\": {}}}",
                 profile.name, profile.field, vector.raw, vector.expected_milli_celsius
             ));
         }
