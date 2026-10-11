@@ -1,0 +1,77 @@
+{
+  "audit_id": "omwei-qudt-energy-water-2026-10",
+  "status": "web-evidence-audit-not-release-pinned",
+  "purpose": "Preliminary semantic audit of the six QUDT resources used by the energy/water descriptor proposal. This does not finalize descriptor IDs, scales, or meter ranges.",
+  "retrieved_on": "2026-10-11",
+  "method": {
+    "source": "Official QUDT vocabulary resource pages",
+    "primary_pairing_rule": "Check quantity-kind qudt:applicableUnit, unit qudt:hasQuantityKind/unitForQuantityKind, and dimension vectors. Do not require reciprocal list equality; applicableUnit is materialized from hasQuantityKind and specialization relationships may explain inherited applicability.",
+    "reproducibility_limit": "The public pages inspected report mixed rdfs:isDefinedBy versions across resources (3.5.0, 3.5.1, and 3.4.0). Therefore this is an evidence snapshot, not a reproducible audit against one pinned QUDT release. Before CI enforcement, rerun against one pinned RDF release and record the dataset checksum."
+  },
+  "pairs": [
+    {
+      "descriptor": "cumulative_active_electrical_energy",
+      "quantity_kind_iri": "http://qudt.org/vocab/quantitykind/ActiveEnergy",
+      "unit_iri": "http://qudt.org/vocab/unit/KiloW-HR",
+      "result": "supported_with_specialization",
+      "evidence": {
+        "quantity_kind_page": "ActiveEnergy lists KiloW-HR in applicableUnit, defines ActiveEnergy as a specialization of ElectricEnergy, and comments that applicable units are those of ElectricEnergy.",
+        "unit_page": "KiloW-HR lists ElectricEnergy and Energy as hasQuantityKind and unitForQuantityKind; dimension vector is qkdv:A0E0L2I0M1H0T-2.",
+        "reported_versions": {
+          "quantity_kind": "3.5.0",
+          "unit": "3.5.0"
+        }
+      },
+      "references": [
+        "https://qudt.org/vocab/quantitykind/ActiveEnergy",
+        "https://qudt.org/vocab/unit/KiloW-HR"
+      ]
+    },
+    {
+      "descriptor": "cumulative_water_volume",
+      "quantity_kind_iri": "http://qudt.org/vocab/quantitykind/Volume",
+      "unit_iri": "http://qudt.org/vocab/unit/M3",
+      "result": "supported",
+      "evidence": {
+        "quantity_kind_page": "Volume lists M3 in applicableUnit; dimension vector qkdv:A0E0L3I0M0H0T0D0.",
+        "unit_page": "M3 lists Volume in hasQuantityKind and unitForQuantityKind; symbol m³ and UCUM code m3.",
+        "reported_versions": {
+          "quantity_kind": "3.5.0",
+          "unit": "3.5.1"
+        }
+      },
+      "references": [
+        "https://qudt.org/vocab/quantitykind/Volume",
+        "https://qudt.org/vocab/unit/M3"
+      ]
+    },
+    {
+      "descriptor": "water_volume_flow_rate",
+      "quantity_kind_iri": "http://qudt.org/vocab/quantitykind/VolumeFlowRate",
+      "unit_iri": "http://qudt.org/vocab/unit/L-PER-SEC",
+      "result": "supported",
+      "evidence": {
+        "quantity_kind_page": "VolumeFlowRate lists L-PER-SEC in applicableUnit; dimension vector qkdv:A0E0L3I0M0H0T-1D0.",
+        "unit_page": "L-PER-SEC lists VolumeFlowRate and VolumePerTime in hasQuantityKind and unitForQuantityKind; symbol L/s and conversion multiplier 0.001.",
+        "reported_versions": {
+          "quantity_kind": "3.5.0",
+          "unit": "3.4.0"
+        }
+      },
+      "references": [
+        "https://qudt.org/vocab/quantitykind/VolumeFlowRate",
+        "https://qudt.org/vocab/unit/L-PER-SEC"
+      ]
+    }
+  ],
+  "decision": {
+    "semantic_candidates": "All three proposed quantity-kind/unit pairs are supported by the official resource-page evidence inspected.",
+    "not_decided": [
+      "Whether m3 and L/s are the correct canonical units for target meters",
+      "Actual meter resolution and valid ranges",
+      "Descriptor ID allocation",
+      "Corpus schema change and schema_version"
+    ],
+    "next_required_step": "Repeat this audit against one explicitly pinned QUDT RDF release (same release for quantity-kind and unit graphs), run machine checks for resource existence, applicableUnit/hasQuantityKind, dimension-vector compatibility and specialization paths, then save the release identifier and SHA-256 checksums."
+  }
+}
