@@ -26,3 +26,7 @@ jobs:
         run: cargo test --no-default-features --lib
       - name: Run full host tests
         run: cargo test
+      - name: Verify publish package contents
+        run: |
+          cargo package --list --no-verify
+          cargo package --no-verify
