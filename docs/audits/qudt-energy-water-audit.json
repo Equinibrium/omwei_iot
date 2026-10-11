@@ -1,6 +1,6 @@
 {
   "audit_id": "omwei-qudt-energy-water-2026-10",
-  "status": "web-evidence-audit-not-release-pinned",
+  "status": "pinned-rdf-audit-script-added-not-yet-run-in-ci",
   "purpose": "Preliminary semantic audit of the six QUDT resources used by the energy/water descriptor proposal. This does not finalize descriptor IDs, scales, or meter ranges.",
   "retrieved_on": "2026-10-11",
   "method": {
@@ -73,5 +73,47 @@
       "Corpus schema change and schema_version"
     ],
     "next_required_step": "Repeat this audit against one explicitly pinned QUDT RDF release (same release for quantity-kind and unit graphs), run machine checks for resource existence, applicableUnit/hasQuantityKind, dimension-vector compatibility and specialization paths, then save the release identifier and SHA-256 checksums."
+  },
+  "pinned_release": {
+    "release": "QUDT v3.5.2",
+    "tag": "https://github.com/qudt/qudt-public-repo/releases/tag/v3.5.2",
+    "tag_object_sha": "01c17801dd651d2e206369d12695e54125ea3d6e",
+    "commit_sha": "99d41755044d5b36220d0759aaf73e62c1a3ee29",
+    "immutable_base_url": "https://raw.githubusercontent.com/qudt/qudt-public-repo/99d41755044d5b36220d0759aaf73e62c1a3ee29/",
+    "artifacts": [
+      {
+        "name": "quantity_kinds",
+        "path": "src/main/rdf/vocab/quantitykinds/VOCAB_QUDT-QUANTITY-KINDS-ALL.ttl",
+        "sha256": "729dc6c4f429a808d4c5d6766f1be13a3dc1196fd95f5bdb417a19f251cbce8f",
+        "bytes_utf8": 1195606
+      },
+      {
+        "name": "units",
+        "path": "src/main/rdf/vocab/unit/VOCAB_QUDT-UNITS-ALL.ttl",
+        "sha256": "372448d68405c3bf561ffc99900bb3bffc5fe9affd345eccbadacbc8043be4c7",
+        "bytes_utf8": 3118195
+      },
+      {
+        "name": "schema",
+        "path": "src/main/rdf/schema/SCHEMA_QUDT.ttl",
+        "sha256": "c29dcea035932c4cfc3882d42a0ab3665c44000d2e6152f85ea9f0d4fbba4a54",
+        "bytes_utf8": 159519
+      }
+    ],
+    "verification_status": "Checksums computed over the UTF-8 file contents retrieved from the v3.5.2 GitHub Contents API. The new CI script independently downloads the immutable commit URLs and checks these checksums before RDF parsing. CI execution has not yet been observed."
+  },
+  "machine_audit": {
+    "script": "tools/audit_qudt_energy_water.py",
+    "dependency_lock": "tools/requirements-qudt-audit.txt",
+    "workflow": ".github/workflows/qudt-audit.yml",
+    "intended_checks": [
+      "SHA-256 of all three pinned Turtle files",
+      "RDF/Turtle parse",
+      "quantity-kind and unit resource existence",
+      "unitForQuantityKind direct relation or explicit specialization path",
+      "matching dimension vectors"
+    ],
+    "current_review_of_pinned_rdf_text": "All three candidate pairs were inspected in the v3.5.2 RDF text. ActiveEnergy specializes ElectricEnergy; KiloW-HR is unitForQuantityKind ElectricEnergy; Volume/M3 and VolumeFlowRate/L-PER-SEC have direct unitForQuantityKind assertions. Dimension vectors match for all three.",
+    "status": "script and workflow committed to proposal branch; pending CI run"
   }
 }
