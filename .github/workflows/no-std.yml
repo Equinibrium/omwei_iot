@@ -1,0 +1,24 @@
+name: no_std core check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  no-std:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: thumbv7em-none-eabihf
+      - name: Check core library without default features
+        run: cargo check --no-default-features --lib --target thumbv7em-none-eabihf
+      - name: Check standalone no_std consumer
+        run: cargo check --manifest-path tests/no_std_smoke/Cargo.toml --target thumbv7em-none-eabihf
+      - name: Run no-default-features core tests on host
+        run: cargo test --no-default-features --lib
+      - name: Run full host tests
+        run: cargo test

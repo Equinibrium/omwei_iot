@@ -1,9 +1,12 @@
 use crate::Descriptor;
+#[cfg(feature = "std")]
 use serde::Deserialize;
+#[cfg(feature = "std")]
 use serde_yaml::Value;
 
 include!(concat!(env!("OUT_DIR"), "/registry_generated.rs"));
 
+#[cfg(feature = "std")]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CorpusMetadata {
     pub registry_id: String,
@@ -11,6 +14,7 @@ pub struct CorpusMetadata {
     pub corpus_version: String,
 }
 
+#[cfg(feature = "std")]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParsedDescriptor {
     pub id: u16,
@@ -22,12 +26,14 @@ pub struct ParsedDescriptor {
     pub max: i32,
 }
 
+#[cfg(feature = "std")]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParsedCorpus {
     pub metadata: CorpusMetadata,
     pub descriptors: Vec<ParsedDescriptor>,
 }
 
+#[cfg(feature = "std")]
 #[derive(Debug, Deserialize)]
 struct CorpusFile {
     registry_id: String,
@@ -36,6 +42,7 @@ struct CorpusFile {
     descriptors: Vec<CorpusDescriptor>,
 }
 
+#[cfg(feature = "std")]
 #[derive(Debug, Deserialize)]
 struct CorpusDescriptor {
     id: String,
@@ -45,17 +52,20 @@ struct CorpusDescriptor {
     constraints: CorpusConstraints,
 }
 
+#[cfg(feature = "std")]
 #[derive(Debug, Deserialize)]
 struct CorpusUnit {
     canonical: String,
 }
 
+#[cfg(feature = "std")]
 #[derive(Debug, Deserialize)]
 struct CorpusEncoding {
     scale: Value,
     offset: i32,
 }
 
+#[cfg(feature = "std")]
 #[derive(Debug, Deserialize)]
 struct CorpusConstraints {
     min: i32,
@@ -64,6 +74,7 @@ struct CorpusConstraints {
 
 /// Parse and validate a corpus using the same validation rules as the build.
 /// The returned descriptors own their strings; parsing does not leak memory.
+#[cfg(feature = "std")]
 pub fn parse_corpus(yaml: &str) -> Result<ParsedCorpus, String> {
     crate::registry_validation::validate_corpus(yaml)?;
     let corpus: CorpusFile = serde_yaml::from_str(yaml)
@@ -148,7 +159,7 @@ mod tests {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 mod corpus_tests {
     use super::*;
 
