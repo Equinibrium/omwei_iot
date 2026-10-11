@@ -187,7 +187,7 @@ def apply(metric):
         let min_raw = (min_shifted - profile.addend as i128).max(i64::MIN as i128);
         let max_raw = (max_shifted - profile.addend as i128).min(i64::MAX as i128);
         out.push_str(&format!(
-            "    {} source_index == {index}:\\n        if raw < {min_raw} or raw > {max_raw}:\\n            metric.fields['omwei_error'] = 'conversion exceeds integer range'\\n            return metric\\n        canonical = round_half_away_from_zero((raw + {}) * {}, {})\\n",
+            "    {} source_index == {index}:\n        if raw < {min_raw} or raw > {max_raw}:\n            metric.fields['omwei_error'] = 'conversion exceeds integer range'\n            return metric\n        canonical = round_half_away_from_zero((raw + {}) * {}, {})\n",
             if index == 0 { "if" } else { "elif" },
             profile.addend, profile.multiplier, profile.divisor
         ));
