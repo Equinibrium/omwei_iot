@@ -1,6 +1,6 @@
 # Using OMWEI in an embedded `no_std` Rust project
 
-This guide describes the current embedded integration surface of `omwei-iot` v0.1.0. The no-`std` configuration is CI-checked against `thumbv7em-none-eabihf`, including a separate consumer crate. The registry contract is still a draft; treat the current descriptor corpus and wire format as development-stage interfaces rather than a released compatibility guarantee.
+This guide describes the current embedded integration surface of `omwei-iot`. The no-`std` configuration is CI-checked against `thumbv7em-none-eabihf`, including a separate consumer crate. The registry contract is still a draft; treat the current descriptor corpus and wire format as development-stage interfaces rather than a released compatibility guarantee.
 
 ## 1. Add OMWEI without default features
 
