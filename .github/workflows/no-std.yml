@@ -16,5 +16,7 @@ jobs:
           targets: thumbv7em-none-eabihf
       - name: Check core library without default features
         run: cargo check --no-default-features --lib --target thumbv7em-none-eabihf
-      - name: Run host tests
+      - name: Run no-default-features core tests on host
+        run: cargo test --no-default-features --lib
+      - name: Run full host tests
         run: cargo test
