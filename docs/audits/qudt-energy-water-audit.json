@@ -1,6 +1,6 @@
 {
   "audit_id": "omwei-qudt-energy-water-2026-10",
-  "status": "pinned-rdf-audit-script-added-not-yet-run-in-ci",
+  "status": "passed-pinned-rdf-audit",
   "purpose": "Preliminary semantic audit of the six QUDT resources used by the energy/water descriptor proposal. This does not finalize descriptor IDs, scales, or meter ranges.",
   "retrieved_on": "2026-10-11",
   "method": {
@@ -114,6 +114,24 @@
       "matching dimension vectors"
     ],
     "current_review_of_pinned_rdf_text": "All three candidate pairs were inspected in the v3.5.2 RDF text. ActiveEnergy specializes ElectricEnergy; KiloW-HR is unitForQuantityKind ElectricEnergy; Volume/M3 and VolumeFlowRate/L-PER-SEC have direct unitForQuantityKind assertions. Dimension vectors match for all three.",
-    "status": "script and workflow committed to proposal branch; pending CI run"
+    "status": "passed",
+    "ci_run": {
+      "workflow": "QUDT mapping audit",
+      "run_id": 38170843931,
+      "run_number": 3,
+      "job_id": 114562939735,
+      "conclusion": "success",
+      "commit": "cda44dcaf30b4db2be2b55fddabb0b5e0813e082",
+      "merge_commit": "8b5ce45f4a46385b1b82386351170b6d48a67a6e",
+      "url": "https://github.com/Equinibrium/omwei_iot/actions/runs/38170843931",
+      "verified_output": [
+        "all three SHA-256 checksums match",
+        "all three Turtle files parse successfully",
+        "all six target resources are present",
+        "ActiveEnergy is supported via ElectricEnergy specialization and matching dimensions",
+        "Volume/M3 passes direct unitForQuantityKind and matching dimensions",
+        "VolumeFlowRate/L-PER-SEC passes direct unitForQuantityKind and matching dimensions"
+      ]
+    }
   }
 }
