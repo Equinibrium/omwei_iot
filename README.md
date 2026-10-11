@@ -26,6 +26,36 @@ Transport
 
 The compact representation is an implementation mechanism, not the primary purpose. Because semantic descriptions do not need to be repeatedly carried and parsed in the data plane, OMWEI can also reduce parsing, interpretation, allocation, copying, computation, and wire overhead. These reductions can lower CPU, bandwidth, and energy consumption.
 
+## Integrator Quickstart
+
+The `omwei` CLI is an offline helper for integrators. It works against the compiled corpus—no network required.
+
+```bash
+# List all descriptors (ID, label, unit, scale, range)
+cargo run --bin omwei -- list
+
+# Show one descriptor by ID or label
+cargo run --bin omwei -- explain 0x0042
+cargo run --bin omwei -- explain ambient_temperature
+
+# Convert a physical value in the canonical unit → atom + 6-byte wire hex
+cargo run --bin omwei -- convert 0x0042 22.5
+# → encoded 22500, wire 0042000057E4
+
+# Decode a 6-byte atom back to physical meaning
+cargo run --bin omwei -- decode 0042000057E4
+```
+
+Typical flow for a vendor field:
+
+1. Map the vendor name/unit to an OMWEI descriptor (`explain` / `list`).
+2. Convert a known physical sample (`convert`) and check the encoded value and wire bytes.
+3. Use the same descriptor ID and encoding rules in your gateway or edge adapter.
+
+For generating platform adapters (The Things Stack JavaScript, Telegraf Starlark) from a mapping fixture, see [`examples/adapter-poc/`](examples/adapter-poc/). That is a proof-of-concept and does not change the production registry contract.
+
+The CLI and conversion rules follow the [v0.2 registry-contract draft](docs/REGISTRY_CONTRACT_V0.2_DRAFT.md). They are not a released compatibility guarantee.
+
 ## Semantic Core
 
 The initial semantic core is intentionally small:
