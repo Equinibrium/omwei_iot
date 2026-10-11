@@ -18,7 +18,7 @@ struct Descriptor {
     maximum: i64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct Profile {
     name: String,
     field: String,
