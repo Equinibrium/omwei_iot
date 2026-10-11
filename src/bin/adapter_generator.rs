@@ -271,7 +271,7 @@ mod tests {
         assert!(starlark.contains("def apply(metric):"));
         assert!(starlark.contains("temp_c_dC"));
         assert!(starlark.contains("temp_f_dF"));
-        assert!(starlark.contains("if \"ambient_temperature_mC\" in metric.fields:\n"));
+        assert!(starlark.contains("metric.fields.pop(\"ambient_temperature_mC\", None)"));
         assert!(!starlark.contains("\\\\n"));
         assert!(vectors_json(&c).contains("\"expected_milli_celsius\": 23500"));
     }
