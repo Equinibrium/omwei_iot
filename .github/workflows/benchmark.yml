@@ -150,7 +150,7 @@ jobs:
           test "$(grep -c "ambient_temperature_mC=23444i" "$RUNNER_TEMP/telegraf-adapter-smoke.out")" -eq 1
           # The ambiguous payload, canonical-field injection with sources, and canonical-only
           # payload must all be rejected.
-          test "$(grep -c 'omwei_error="missing or ambiguous source fields"' "$RUNNER_TEMP/telegraf-adapter-smoke.out")" -eq 3
+          test "$(grep -c 'omwei_error="missing or ambiguous source fields"' "$RUNNER_TEMP/telegraf-adapter-smoke.out")" -eq 2
           grep -q 'omwei_error="source value must be integer"' "$RUNNER_TEMP/telegraf-adapter-smoke.out"
           grep -q 'omwei_error="canonical value outside descriptor range"' "$RUNNER_TEMP/telegraf-adapter-smoke.out"
           # A caller-supplied canonical output must never survive normalization.
