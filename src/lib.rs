@@ -1,8 +1,12 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+
+#[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
 pub mod decimal_conversion;
 pub mod mapping;
 pub mod registry;
+#[cfg(feature = "std")]
 pub mod registry_validation;
 
 pub const AMBIENT_TEMPERATURE_ID: u16 = 0x0042;
@@ -68,6 +72,7 @@ pub fn encode_128(atom: SemanticAtom) -> [u8; 16] {
     out
 }
 
+#[cfg(feature = "std")]
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct JsonObservation {
     pub semantic: String,
@@ -75,6 +80,7 @@ pub struct JsonObservation {
     pub unit: String,
 }
 
+#[cfg(feature = "std")]
 pub fn json_observation() -> JsonObservation {
     JsonObservation {
         semantic: "ambient_temperature".into(),
@@ -113,6 +119,7 @@ mod tests {
     fn unknown_descriptor_is_rejected() {
         assert!(SemanticAtom::new(0xFFFF, 1).is_err());
     }
+    #[cfg(feature = "std")]
     #[test]
     fn json_fixture_has_same_semantic_value() {
         let j = json_observation();
