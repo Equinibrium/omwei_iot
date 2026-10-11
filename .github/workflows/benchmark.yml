@@ -33,6 +33,9 @@ jobs:
       - name: Test
         run: cargo test --release
 
+      - name: Independent Python conformance
+        run: python tests/independent_conformance.py
+
       - name: Generate and smoke-check adapter PoC
         run: |
           cargo run --release --bin adapter_generator -- examples/adapter-poc/registry.yaml "$RUNNER_TEMP/omwei-adapter-poc"
