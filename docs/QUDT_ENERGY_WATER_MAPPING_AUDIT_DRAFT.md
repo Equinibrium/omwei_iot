@@ -12,9 +12,9 @@ Do not treat a missing inverse relation on a unit page as a contradiction by its
 
 | Descriptor candidate | Quantity-kind IRI | Unit IRI | Preliminary finding | Decision |
 |---|---|---|---|---|
-| cumulative active electrical energy | `http://qudt.org/vocab/quantitykind/ActiveEnergy` | `http://qudt.org/vocab/unit/KiloW-HR` | The official ActiveEnergy page lists KiloW-HR as an applicable unit. The KiloW-HR page lists Energy and ElectricEnergy, so a unit-page list that omits ActiveEnergy is not sufficient evidence to reject the pair. | Plausible; confirm using pinned RDF and dimensional checks. |
-| cumulative water volume | `http://qudt.org/vocab/quantitykind/Volume` | `http://qudt.org/vocab/unit/M3` | Both are official QUDT vocabulary terms, but the current audit does not yet contain a pinned RDF assertion/digest proving the pair. | Pending RDF-level check; do not mark as fully audited. |
-| water volume flow rate | `http://qudt.org/vocab/quantitykind/VolumeFlowRate` | `http://qudt.org/vocab/unit/L-PER-SEC` | The official L-PER-SEC page explicitly associates the unit with VolumeFlowRate. | Strong page-level support; confirm against pinned RDF. |
+| cumulative active electrical energy | `http://qudt.org/vocab/quantitykind/ActiveEnergy` | `http://qudt.org/vocab/unit/KiloW-HR` | The official ActiveEnergy page lists KiloW-HR as an applicable unit and identifies ActiveEnergy as a specialization of ElectricEnergy. The KiloW-HR page lists Energy and ElectricEnergy, with a compatible energy dimension vector. This supports the pair through specialization. | Plausible; confirm using pinned RDF and dimensional checks. |
+| cumulative water volume | `http://qudt.org/vocab/quantitykind/Volume` | `http://qudt.org/vocab/unit/M3` | The official Volume page lists M3 as an applicable unit; the M3 page lists Volume as a quantity kind and reports the volume dimension vector. This is positive page-level evidence, but the pages report different QUDT versions. | Pending RDF-level check; do not mark as fully audited. |
+| water volume flow rate | `http://qudt.org/vocab/quantitykind/VolumeFlowRate` | `http://qudt.org/vocab/unit/L-PER-SEC` | The official VolumeFlowRate page lists L-PER-SEC as an applicable unit; the L-PER-SEC page associates it with VolumeFlowRate and VolumePerTime and reports a compatible volume-per-time dimension vector. This is positive page-level evidence, but the pages report different QUDT versions. | Strong page-level support; confirm against pinned RDF. |
 
 ## Proposed machine validation procedure
 
@@ -28,9 +28,11 @@ For a chosen QUDT release:
 6. Record the actual supporting triples and any derived inference separately. If the ontology does not directly or inferentially support a pair, report it for review rather than infer it from the human-readable label.
 7. Keep meter-specific suitability separate from ontology validity: QUDT compatibility cannot establish the meter's output unit, resolution, range, or counter behavior.
 
+A machine-readable evidence snapshot is also stored at `docs/audits/qudt-energy-water-audit.json`; it records the observed page-level claims, dimension vectors, reported versions, and decision boundaries.
+
 ## Reproducibility gap
 
-This report is based on official source-page inspection and does not claim a completed pinned-release RDF audit. Before this is called reproducible, add an audit script/test that runs against a checked-in or CI-downloaded, version-pinned QUDT RDF artifact and asserts the three pairs above, with a recorded digest. Do not claim those assertions pass until that test has actually run.
+All three pairs have positive official-page evidence in the current snapshot. However, the pages expose mixed QUDT versions, so this report does not claim a completed pinned-release RDF audit. Before this is called reproducible, add an audit script/test that runs against a checked-in or CI-downloaded, version-pinned QUDT RDF artifact and asserts the three pairs above, with a recorded digest. Do not claim those assertions pass until that test has actually run.
 
 ## Open decisions unaffected by this audit
 
