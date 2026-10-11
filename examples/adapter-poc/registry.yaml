@@ -1,0 +1,37 @@
+schema_version: "1"
+descriptor:
+  id: "0x0042"
+  semantic: ambient_temperature
+  canonical_unit: degree_Celsius
+  output_field: ambient_temperature_mC
+  minimum: -80000
+  maximum: 150000
+
+# Source profiles are input encodings, not new OMWEI semantics.
+# canonical_milli_celsius = round_half_away_from_zero(((raw + addend) * multiplier) / divisor)
+profiles:
+  - name: vendor_a_deci_celsius
+    field: temp_c_dC
+    description: "Signed int16 big-endian; raw value is Celsius in tenths."
+    addend: 0
+    multiplier: 100
+    divisor: 1
+    vectors:
+      - raw: 235
+        expected_milli_celsius: 23500
+      - raw: -125
+        expected_milli_celsius: -12500
+
+  - name: vendor_b_deci_fahrenheit
+    field: temp_f_dF
+    description: "Signed int16 big-endian; raw value is Fahrenheit in tenths."
+    addend: -320
+    multiplier: 500
+    divisor: 9
+    vectors:
+      - raw: 743
+        expected_milli_celsius: 23500
+      - raw: 320
+        expected_milli_celsius: 0
+      - raw: 742
+        expected_milli_celsius: 23444
