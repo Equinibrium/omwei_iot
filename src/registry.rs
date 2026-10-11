@@ -159,7 +159,7 @@ mod tests {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 mod corpus_tests {
     use super::*;
 
