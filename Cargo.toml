@@ -13,6 +13,10 @@ categories = ["embedded", "encoding", "network-programming"]
 name = "omwei_iot"
 path = "src/lib.rs"
 
+[[bin]]
+name = "omwei"
+path = "src/bin/omwei.rs"
+
 [build-dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"
