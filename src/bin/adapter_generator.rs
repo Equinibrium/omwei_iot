@@ -182,7 +182,12 @@ def apply(metric):
 "#);
     for (index, profile) in config.profiles.iter().enumerate() {
         // Guard before Starlark's signed-64-bit arithmetic; derive bounds in i128.
-        let min_shifted = (i64::MIN as i128) / (profile.multiplier as i128);
+        let mut min_shifted = (i64::MIN as i128) / (profile.multiplier as i128);
+        // The rounding helper negates negative numerators; exclude i64::MIN,
+        // whose absolute value cannot be represented as a signed 64-bit integer.
+        if min_shifted * profile.multiplier as i128 == i64::MIN as i128 {
+            min_shifted += 1;
+        }
         let max_shifted = (i64::MAX as i128) / (profile.multiplier as i128);
         let min_raw = (min_shifted - profile.addend as i128).max(i64::MIN as i128);
         let max_raw = (max_shifted - profile.addend as i128).min(i64::MAX as i128);
