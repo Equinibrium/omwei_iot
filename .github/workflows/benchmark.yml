@@ -44,8 +44,7 @@ jobs:
           {
             cat <<'TELEGRAF_HEAD'
           [[inputs.exec]]
-            commands = ["echo '{\"temp_c_dC\":235}'; echo '{\"temp_f_dF\":743}'"]
-            shell = "/bin/sh"
+            commands = ["printf '{\"temp_c_dC\":235}\\n{\"temp_f_dF\":743}\\n'"]
             timeout = "5s"
             data_format = "json_v2"
             [[inputs.exec.json_v2]]
