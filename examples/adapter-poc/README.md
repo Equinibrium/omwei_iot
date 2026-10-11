@@ -1,6 +1,8 @@
 # Registry-driven adapter generator PoC
 
-This is an isolated experiment on branch `experiment/adapter-generator-poc`. It does not change the production registry contract or wire format.
+Example / proof-of-concept under `examples/adapter-poc/`. It does **not** change the production registry contract or wire format.
+
+Source profiles here are **input encodings** (vendor field → canonical value), not new OMWEI semantic descriptors.
 
 ## Claim under test
 
