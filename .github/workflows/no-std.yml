@@ -18,6 +18,8 @@ jobs:
         run: cargo check --no-default-features --lib --target thumbv7em-none-eabihf
       - name: Check standalone no_std consumer
         run: cargo check --manifest-path tests/no_std_smoke/Cargo.toml --target thumbv7em-none-eabihf
+      - name: Run embedded consumer runtime contract tests
+        run: cargo test --manifest-path tests/no_std_smoke/Cargo.toml
       - name: Run no-default-features core tests on host
         run: cargo test --no-default-features --lib
       - name: Run full host tests
