@@ -1,6 +1,6 @@
 # QUDT Candidate Mapping Audit — Energy and Water (Draft)
 
-Status: pinned RDF sources selected and audit script/workflow added; CI execution is pending. This does not finalize descriptor IDs, scales, or meter ranges.
+Status: pinned RDF audit passed in GitHub Actions on 2026-10-11. This does not finalize descriptor IDs, scales, or meter ranges.
 
 ## Pinned source release
 
@@ -33,7 +33,7 @@ python -m pip install -r tools/requirements-qudt-audit.txt
 python tools/audit_qudt_energy_water.py
 ```
 
-The GitHub Actions workflow `.github/workflows/qudt-audit.yml` runs the same script on relevant pull-request/push changes and on manual dispatch. A successful run should print three PASS lines and the final pinned commit. The script and workflow have been added, but **a CI execution has not yet been observed**; do not describe the automated audit as passed until the workflow run succeeds.
+The GitHub Actions workflow `.github/workflows/qudt-audit.yml` runs the same script on relevant pull-request/push changes and on manual dispatch. A successful run should print three PASS lines and the final pinned commit. The first CI run passed: [QUDT mapping audit run #3](https://github.com/Equinibrium/omwei_iot/actions/runs/38170843931). The logs confirm all three SHA-256 checksums, all Turtle parses, and all three pair assertions passed against commit `99d41755044d5b36220d0759aaf73e62c1a3ee29`.
 
 ## Scope and limits
 
