@@ -1,42 +1,48 @@
 # QUDT Candidate Mapping Audit — Energy and Water (Draft)
 
-Status: preliminary source-page audit, not a release-pinned ontology validation. This report does not change the released corpus or allocate descriptor IDs.
+Status: pinned RDF sources selected and audit script/workflow added; CI execution is pending. This does not finalize descriptor IDs, scales, or meter ranges.
 
-## Scope and method
+## Pinned source release
 
-Candidate pairs are the three descriptor proposals in `docs/ENERGY_WATER_DESCRIPTOR_PROPOSAL.md`. Source pages were opened from the official QUDT vocabulary on 2026-10-11. The page inspection is evidence for review, but it is not yet a reproducible RDF-level validation against one pinned QUDT release: the vocabulary pages can be regenerated, and this repository does not yet vendor a specific QUDT release or store a digest of the ontology files.
+The audit uses QUDT **v3.5.2**, resolved to immutable commit `99d41755044d5b36220d0759aaf73e62c1a3ee29` (tag object `01c17801dd651d2e206369d12695e54125ea3d6e`). All RDF files come from that same commit, rather than from live vocabulary pages.
 
-Do not treat a missing inverse relation on a unit page as a contradiction by itself. In QUDT, `qudt:applicableUnit` and quantity-kind relations have different semantics; validation must follow the ontology properties, not compare rendered page lists for equality.
+| Artifact | SHA-256 of UTF-8 contents |
+|---|---|
+| `src/main/rdf/vocab/quantitykinds/VOCAB_QUDT-QUANTITY-KINDS-ALL.ttl` | `729dc6c4f429a808d4c5d6766f1be13a3dc1196fd95f5bdb417a19f251cbce8f` |
+| `src/main/rdf/vocab/unit/VOCAB_QUDT-UNITS-ALL.ttl` | `372448d68405c3bf561ffc99900bb3bffc5fe9affd345eccbadacbc8043be4c7` |
+| `src/main/rdf/schema/SCHEMA_QUDT.ttl` | `c29dcea035932c4cfc3882d42a0ab3665c44000d2e6152f85ea9f0d4fbba4a54` |
 
-## Candidate pair findings
+The machine-readable record is `docs/audits/qudt-energy-water-audit.json`. The script downloads these immutable URLs, verifies each checksum, parses Turtle with pinned RDFLib, and checks resources, supported quantity-kind/unit relations, specialization, and equal dimension vectors.
 
-| Descriptor candidate | Quantity-kind IRI | Unit IRI | Preliminary finding | Decision |
+## Candidate pair findings from the pinned RDF text
+
+| Descriptor candidate | Quantity-kind IRI | Unit IRI | RDF evidence inspected | Finding |
 |---|---|---|---|---|
-| cumulative active electrical energy | `http://qudt.org/vocab/quantitykind/ActiveEnergy` | `http://qudt.org/vocab/unit/KiloW-HR` | The official ActiveEnergy page lists KiloW-HR as an applicable unit and identifies ActiveEnergy as a specialization of ElectricEnergy. The KiloW-HR page lists Energy and ElectricEnergy, with a compatible energy dimension vector. This supports the pair through specialization. | Plausible; confirm using pinned RDF and dimensional checks. |
-| cumulative water volume | `http://qudt.org/vocab/quantitykind/Volume` | `http://qudt.org/vocab/unit/M3` | The official Volume page lists M3 as an applicable unit; the M3 page lists Volume as a quantity kind and reports the volume dimension vector. This is positive page-level evidence, but the pages report different QUDT versions. | Pending RDF-level check; do not mark as fully audited. |
-| water volume flow rate | `http://qudt.org/vocab/quantitykind/VolumeFlowRate` | `http://qudt.org/vocab/unit/L-PER-SEC` | The official VolumeFlowRate page lists L-PER-SEC as an applicable unit; the L-PER-SEC page associates it with VolumeFlowRate and VolumePerTime and reports a compatible volume-per-time dimension vector. This is positive page-level evidence, but the pages report different QUDT versions. | Strong page-level support; confirm against pinned RDF. |
+| cumulative active electrical energy | `http://qudt.org/vocab/quantitykind/ActiveEnergy` | `http://qudt.org/vocab/unit/KiloW-HR` | ActiveEnergy specializes ElectricEnergy; KiloW-HR has `unitForQuantityKind ElectricEnergy`; their dimension vectors match. | Supported via specialization. |
+| cumulative water volume | `http://qudt.org/vocab/quantitykind/Volume` | `http://qudt.org/vocab/unit/M3` | M3 has `unitForQuantityKind Volume`; dimension vectors match. | Supported directly. |
+| water volume flow rate | `http://qudt.org/vocab/quantitykind/VolumeFlowRate` | `http://qudt.org/vocab/unit/L-PER-SEC` | L-PER-SEC has `unitForQuantityKind VolumeFlowRate`; dimension vectors match. | Supported directly. |
 
-## Proposed machine validation procedure
+The audit deliberately does not require reciprocal lists to be textually identical. It uses QUDT's explicit unit-for-quantity-kind relation and, for ActiveEnergy, the declared specialization path to ElectricEnergy.
 
-For a chosen QUDT release:
+## Reproduce the audit locally
 
-1. Store the release identifier, retrieval date, source URL(s), and SHA-256 digest for the exact RDF/OWL files used.
-2. Parse the RDF rather than scrape the HTML page presentation.
-3. Resolve each quantity-kind and unit IRI; fail if either IRI is absent.
-4. Check the unit-to-quantity-kind applicability according to the release's declared predicates, including `qudt:applicableUnit` where present. Do not demand that inverse lists be textually identical.
-5. Check dimensional compatibility using QUDT's quantity-kind/unit dimension-vector metadata when available. Dimensional compatibility is necessary but may not distinguish semantically different quantities with the same dimensions.
-6. Record the actual supporting triples and any derived inference separately. If the ontology does not directly or inferentially support a pair, report it for review rather than infer it from the human-readable label.
-7. Keep meter-specific suitability separate from ontology validity: QUDT compatibility cannot establish the meter's output unit, resolution, range, or counter behavior.
+From the repository root with Python 3.12:
 
-A machine-readable evidence snapshot is also stored at `docs/audits/qudt-energy-water-audit.json`; it records the observed page-level claims, dimension vectors, reported versions, and decision boundaries.
+```sh
+python -m pip install -r tools/requirements-qudt-audit.txt
+python tools/audit_qudt_energy_water.py
+```
 
-## Reproducibility gap
+The GitHub Actions workflow `.github/workflows/qudt-audit.yml` runs the same script on relevant pull-request/push changes and on manual dispatch. A successful run should print three PASS lines and the final pinned commit. The script and workflow have been added, but **a CI execution has not yet been observed**; do not describe the automated audit as passed until the workflow run succeeds.
 
-All three pairs have positive official-page evidence in the current snapshot. However, the pages expose mixed QUDT versions, so this report does not claim a completed pinned-release RDF audit. Before this is called reproducible, add an audit script/test that runs against a checked-in or CI-downloaded, version-pinned QUDT RDF artifact and asserts the three pairs above, with a recorded digest. Do not claim those assertions pass until that test has actually run.
+## Scope and limits
 
-## Open decisions unaffected by this audit
+This audit establishes ontology-level compatibility, not meter suitability. It cannot establish whether target devices report kWh, m3, or L/s, nor their actual precision, valid range, reset behavior, or rollover semantics.
 
-- Descriptor IDs 0x0048–0x004A remain placeholders.
-- Confirm energy scale against real meter capabilities.
-- Confirm water meter units/resolution and flow device class/range.
-- Decide how typed unit IRIs are represented in the corpus; if the schema changes, increment `schema_version` and update validation/conformance tests.
+Still open:
+- descriptor IDs `0x0048`–`0x004A) remain placeholders;
+- confirm energy scale against actual meter output and lifetime requirements;
+- confirm water units/resolution and select the flow-meter class/range;
+- decide how unit IRIs are represented in the corpus; if schema changes, increment `schema_version` and update validation/conformance tests.
+
+No production corpus or released wire format has been changed.
