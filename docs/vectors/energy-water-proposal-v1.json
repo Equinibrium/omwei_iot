@@ -1,0 +1,58 @@
+{
+  "status": "proposal-only",
+  "note": "IDs are placeholders, not allocations. These vectors are not production conformance guarantees until descriptor IDs, units, scales, and ranges are approved.",
+  "wire_format": {
+    "atom_bytes": 6,
+    "descriptor_id": "uint16 big-endian",
+    "encoded_value": "signed int32 two's-complement big-endian"
+  },
+  "vectors": [
+    {
+      "label": "cumulative_active_electrical_energy",
+      "provisional_id": "0x0048",
+      "canonical_unit": "kWh",
+      "scale": "0.01",
+      "physical_input": "0.05",
+      "encoded_integer": 5,
+      "atom_hex": "004800000005"
+    },
+    {
+      "label": "cumulative_active_electrical_energy",
+      "provisional_id": "0x0048",
+      "canonical_unit": "kWh",
+      "scale": "0.01",
+      "physical_input": "418",
+      "encoded_integer": 41800,
+      "atom_hex": "00480000A348"
+    },
+    {
+      "label": "cumulative_water_volume",
+      "provisional_id": "0x0049",
+      "canonical_unit": "m3",
+      "scale": "0.001",
+      "physical_input": "1.234",
+      "encoded_integer": 1234,
+      "atom_hex": "0049000004D2"
+    },
+    {
+      "label": "water_volume_flow_rate",
+      "provisional_id": "0x004A",
+      "canonical_unit": "L/s",
+      "scale": "0.001",
+      "physical_input": "12.345",
+      "encoded_integer": 12345,
+      "atom_hex": "004A00003039"
+    }
+  ],
+  "required_cases_not_yet_instantiated": [
+    "zero",
+    "one scale step",
+    "half-step rounding boundaries",
+    "encoded minimum and maximum",
+    "one value below and above each valid range",
+    "negative values for monotonic counters",
+    "unknown descriptor ID",
+    "reset and replacement discontinuity",
+    "rollover only when meter modulus is explicitly defined"
+  ]
+}
