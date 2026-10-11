@@ -116,10 +116,15 @@ jobs:
             telegraf:1.36 \
             --config /tmp/omwei/telegraf-adapter-smoke.conf --test \
             | tee "$RUNNER_TEMP/telegraf-adapter-smoke.out"
+          # Two valid profiles must normalize to the same canonical value.
           test "$(grep -c "ambient_temperature_mC=23500i" "$RUNNER_TEMP/telegraf-adapter-smoke.out")" -eq 2
-          grep -q 'omwei_error="missing or ambiguous source fields"' "$RUNNER_TEMP/telegraf-adapter-smoke.out"
+          # The ambiguous payload, canonical-field injection with sources, and canonical-only
+          # payload must all be rejected.
+          test "$(grep -c 'omwei_error="missing or ambiguous source fields"' "$RUNNER_TEMP/telegraf-adapter-smoke.out")" -eq 3
           grep -q 'omwei_error="source value must be integer"' "$RUNNER_TEMP/telegraf-adapter-smoke.out"
           grep -q 'omwei_error="canonical value outside descriptor range"' "$RUNNER_TEMP/telegraf-adapter-smoke.out"
+          # A caller-supplied canonical output must never survive normalization.
+          ! grep -q 'ambient_temperature_mC=999i' "$RUNNER_TEMP/telegraf-adapter-smoke.out"
       - name: Run benchmark
         run: cargo run --release --bin benchmark
 
