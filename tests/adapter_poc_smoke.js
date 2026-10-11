@@ -9,11 +9,12 @@ const context = {};
 vm.runInNewContext(source, context, { filename: generatedPath });
 assert.equal(typeof context.normalizeUplink, "function");
 
-assert.deepEqual(JSON.parse(JSON.stringify(context.normalizeUplink({ data: { payload: { temp_c_dC: 235 } } }))),
+// The Things Stack calls normalizeUplink with the decoder result under input.data.
+assert.deepEqual(JSON.parse(JSON.stringify(context.normalizeUplink({ data: { temp_c_dC: 235 } }))),
   { data: { ambient_temperature_mC: 23500 } });
-assert.deepEqual(JSON.parse(JSON.stringify(context.normalizeUplink({ data: { payload: { temp_f_dF: 743 } } }))),
+assert.deepEqual(JSON.parse(JSON.stringify(context.normalizeUplink({ data: { temp_f_dF: 743 } }))),
   { data: { ambient_temperature_mC: 23500 } });
-assert.deepEqual(JSON.parse(JSON.stringify(context.normalizeUplink({ data: { payload: { temp_f_dF: 320 } } }))),
+assert.deepEqual(JSON.parse(JSON.stringify(context.normalizeUplink({ data: { temp_f_dF: 320 } }))),
   { data: { ambient_temperature_mC: 0 } });
 
 for (const payload of [
@@ -21,8 +22,9 @@ for (const payload of [
   { temp_c_dC: 235, temp_f_dF: 743 },
   { temp_c_dC: "235" },
   { temp_c_dC: 1000000 },
+  { temp_c_dC: Number.MAX_SAFE_INTEGER },
 ]) {
-  const result = context.normalizeUplink({ data: { payload } });
+  const result = context.normalizeUplink({ data: payload });
   assert.ok(Array.isArray(result.errors), JSON.stringify({ payload, result }));
   assert.deepEqual(JSON.parse(JSON.stringify(result.data)), {});
 }

@@ -110,15 +110,20 @@ fn validate(config: &Config) -> Result<(), String> {
 
 fn js_adapter(config: &Config) -> String {
     let mut out = String::from(r#"// Generated; do not edit.
+function isSafeInteger(value) {
+  return typeof value === 'number' && isFinite(value) &&
+    Math.floor(value) === value && Math.abs(value) <= 9007199254740991;
+}
+
 function roundHalfAwayFromZero(n, d) {
-  const sign = n < 0 ? -1 : 1;
-  const a = Math.abs(n);
+  var sign = n < 0 ? -1 : 1;
+  var a = Math.abs(n);
   return sign * (Math.floor(a / d) + ((a % d) * 2 >= d ? 1 : 0));
 }
 
 function normalizeUplink(input) {
-  const payload = (input && input.data && input.data.payload) || (input && input.data) || {};
-  const matches = [];
+  var payload = (input && input.data && input.data.payload) || (input && input.data) || {};
+  var matches = [];
 "#);
     for (index, profile) in config.profiles.iter().enumerate() {
         out.push_str(&format!(
@@ -127,10 +132,10 @@ function normalizeUplink(input) {
         ));
     }
     out.push_str(r#"  if (matches.length !== 1) return { data: {}, errors: [matches.length === 0 ? 'missing recognized source field' : 'ambiguous source fields'] };
-  const match = matches[0];
-  if (!Number.isSafeInteger(match.raw)) return { data: {}, errors: ['source value must be a safe integer'] };
-  let numerator;
-  let denominator;
+  var match = matches[0];
+  if (!isSafeInteger(match.raw)) return { data: {}, errors: ['source value must be a safe integer'] };
+  var numerator;
+  var denominator;
   switch (match.index) {
 "#);
     for (index, profile) in config.profiles.iter().enumerate() {
@@ -140,7 +145,7 @@ function normalizeUplink(input) {
         ));
     }
     out.push_str(&format!(
-        "    default: return {{ data: {{}}, errors: ['unknown profile'] }};\n  }}\n  if (!Number.isSafeInteger(numerator)) return {{ data: {{}}, errors: ['conversion exceeds safe integer range'] }};\n  const canonical = roundHalfAwayFromZero(numerator, denominator);\n  if (canonical < {} || canonical > {}) return {{ data: {{}}, errors: ['canonical value outside descriptor range'] }};\n  return {{ data: {{ {:?}: canonical }} }};\n}}\n",
+        "    default: return {{ data: {{}}, errors: ['unknown profile'] }};\n  }}\n  if (!isSafeInteger(numerator)) return {{ data: {{}}, errors: ['conversion exceeds safe integer range'] }};\n  var canonical = roundHalfAwayFromZero(numerator, denominator);\n  if (canonical < {} || canonical > {}) return {{ data: {{}}, errors: ['canonical value outside descriptor range'] }};\n  return {{ data: {{ {:?}: canonical }} }};\n}}\n",
         config.descriptor.minimum, config.descriptor.maximum, config.descriptor.output_field
     ));
     out
