@@ -29,7 +29,7 @@ struct Profile {
     vectors: Vec<Vector>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Vector {
     raw: i64,
     expected_milli_celsius: i64,
