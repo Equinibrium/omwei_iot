@@ -1,11 +1,12 @@
 [package]
 name = "omwei-iot"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "Apache-2.0"
 description = "Semantic interoperability primitives for heterogeneous IoT systems"
 repository = "https://github.com/Equinibrium/omwei_iot"
 readme = "README.md"
+exclude = ["tests/no_std_smoke/**", "examples/minimal-firmware/**"]
 keywords = ["iot", "semantic", "interoperability", "embedded", "telemetry"]
 categories = ["embedded", "encoding", "network-programming"]
 
