@@ -56,6 +56,10 @@ For generating platform adapters (The Things Stack JavaScript, Telegraf Starlark
 
 The CLI and conversion rules follow the [v0.2 registry-contract draft](docs/REGISTRY_CONTRACT_V0.2_DRAFT.md). They are not a released compatibility guarantee.
 
+## Embedded / no_std
+
+The library can be used without default `std` features for embedded Rust targets. See the [embedded no_std integration guide](docs/EMBEDDED_NO_STD.md) for Cargo configuration, encoding/decoding examples, registry constraints, and CI checks.
+
 ## Semantic Core
 
 The initial semantic core is intentionally small:
