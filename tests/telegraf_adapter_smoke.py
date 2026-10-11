@@ -21,10 +21,10 @@ def input_block(payload):
         '  timeout = "5s"',
         '  data_format = "json_v2"',
     ]
+    lines.append("  [[inputs.exec.json_v2]]")
     for field, value in payload.items():
         field_type = "int" if isinstance(value, int) and not isinstance(value, bool) else "string"
         lines.extend([
-            "  [[inputs.exec.json_v2]]",
             "    [[inputs.exec.json_v2.field]]",
             f"      path = {json.dumps(field)}",
             f'      type = "{field_type}"',
