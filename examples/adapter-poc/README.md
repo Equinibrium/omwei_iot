@@ -29,8 +29,10 @@ For each source profile:
 - Celsius tenths: `raw × 100`
 - Fahrenheit tenths: `(raw − 320) × 500 / 9`
 
-Both generated adapters reject missing/ambiguous source fields, non-integer input, conversion overflow, and values outside the descriptor range. They do not clamp or silently choose a default.
+Both generated adapters reject missing/ambiguous source fields, non-integer input, and values outside the descriptor range. They do not clamp or silently choose a default. The JavaScript adapter also rejects conversion intermediates outside JavaScript's safe-integer range. Equivalent overflow behavior in the Telegraf Starlark runtime has not yet been established, so this PoC does not claim parity for that edge case.
 
-## Evidence boundary
+## CI evidence and limits
 
-Passing Rust tests demonstrates the fixture validator/conversion and generator output shape. It does not, by itself, prove that the emitted JavaScript and Starlark execute correctly inside live The Things Stack and Telegraf deployments. That requires a platform-level smoke test. It also does not establish that the current production corpus schema already supports source profiles; this fixture deliberately tests a proposed extension separately.
+CI generates the JavaScript adapter, Starlark processor, and test-vector JSON from the same registry fixture. It executes every registry vector against the JavaScript adapter and builds a Telegraf smoke configuration from those same vectors, then compares the emitted canonical-value counts and checks fail-closed handling of invalid fixtures.
+
+This is a container-level Telegraf test, not a live The Things Stack integration test. Passing CI demonstrates the fixture validator/conversion, generated JavaScript behavior, and Telegraf processor behavior for the tested vectors and invalid cases. It does not establish production interoperability, nor does it establish that the current production corpus schema already supports source profiles; this fixture deliberately tests a proposed extension separately.
