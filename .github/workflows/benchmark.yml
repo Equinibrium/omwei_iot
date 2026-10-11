@@ -36,6 +36,12 @@ jobs:
       - name: Independent Python conformance
         run: python tests/independent_conformance.py
 
+      - name: Build CLI for Rust-Python interoperability
+        run: cargo build --release --bin omwei
+
+      - name: Rust-Python wire interoperability
+        run: python tests/cross_implementation_interop.py
+
       - name: Generate and smoke-check adapter PoC
         run: |
           cargo run --release --bin adapter_generator -- examples/adapter-poc/registry.yaml "$RUNNER_TEMP/omwei-adapter-poc"
