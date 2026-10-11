@@ -69,7 +69,7 @@ fn validate(config: &Config) -> Result<(), String> {
     }
     let id = config.descriptor.id.as_str();
     if id.len() != 6 || !id.starts_with("0x")
-        || !id[2..].bytes().all(|b| b.is_ascii_hexdigit())
+        || !id[2..].bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
     {
         return Err("descriptor id must use 0xNNNN syntax".into());
     }
@@ -156,6 +156,10 @@ def round_half_away_from_zero(n, d):
 def apply(metric):
     matches = []
 "#);
+    out.push_str(&format!(
+        "    if {:?} in metric.fields:\\n        del metric.fields[{:?}]\\n",
+        config.descriptor.output_field, config.descriptor.output_field
+    ));
     for (index, profile) in config.profiles.iter().enumerate() {
         out.push_str(&format!(
             "    raw_{index} = metric.fields.get({:?})\n    if raw_{index} != None:\n        matches.append(({index}, raw_{index}))\n",
