@@ -157,7 +157,7 @@ def apply(metric):
     matches = []
 "#);
     out.push_str(&format!(
-        "    if {:?} in metric.fields:\\n        del metric.fields[{:?}]\\n",
+        "    if {:?} in metric.fields:\n        del metric.fields[{:?}]\n",
         config.descriptor.output_field, config.descriptor.output_field
     ));
     for (index, profile) in config.profiles.iter().enumerate() {
@@ -271,6 +271,8 @@ mod tests {
         assert!(starlark.contains("def apply(metric):"));
         assert!(starlark.contains("temp_c_dC"));
         assert!(starlark.contains("temp_f_dF"));
+        assert!(starlark.contains("if \"ambient_temperature_mC\" in metric.fields:\\n"));
+        assert!(!starlark.contains("\\\\n"));
         assert!(vectors_json(&c).contains("\"expected_milli_celsius\": 23500"));
     }
 
