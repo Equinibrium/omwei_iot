@@ -96,6 +96,30 @@ OMWEI does not attempt to replace established semantic standards. A registry ent
 
 Descriptor IDs are immutable and must not be reused for a different meaning. Deprecated IDs remain resolvable.
 
+## Registry Validation (v0.2 draft)
+
+The corpus declares its registry identity, schema version, corpus version, and descriptor namespace. The build script validates the checked-in corpus before generating the static Rust descriptor table. Validation is offline and fails the build for duplicate IDs, unsupported lifecycle states or encodings, missing semantic/unit fields, invalid ranges, and scales the current integer codec cannot represent exactly. Descriptor IDs and decimal scales are quoted strings in the corpus so YAML numeric coercion cannot change their interpretation.
+
+The validator is also exposed as `omwei_iot::registry_validation::validate_corpus` so integration tests and tooling can apply the same checks to a corpus string.
+
+This validation contract is under review in the [v0.2 registry-contract draft](docs/REGISTRY_CONTRACT_V0.2_DRAFT.md). It is not yet a released compatibility guarantee. The current corpus filename and legacy `version` field are retained during this draft stage; the explicit `schema_version` and `corpus_version` fields are the new contract metadata.
+
+## Conformance Vectors (v0.2 draft)
+
+Fixed six-byte atom vectors are maintained in [`tests/vectors/atom-v1.json`](tests/vectors/atom-v1.json) and exercised by [`tests/conformance_vectors.rs`](tests/conformance_vectors.rs).
+
+The vectors cover all six current core descriptors, exact big-endian wire bytes, decode/encode round trips, each descriptor's encoded minimum and maximum, values immediately outside the declared range, unknown descriptor IDs, and malformed atom lengths.
+
+These vectors verify the current encoded-integer wire representation. Deterministic conversion from decimal strings is specified separately by the decimal-conversion vectors below; both vector sets remain draft conformance targets, not released compatibility guarantees.
+
+## Deterministic Decimal Conversion (v0.2 draft)
+
+The draft API `decimal_conversion::from_decimal` converts a plain decimal string in the descriptor's canonical physical unit into a validated atom without binary floating-point arithmetic. The current rule uses exact base-10 parsing, rounds to nearest with exact ties away from zero, accepts at most 18 fractional digits, and rejects malformed, overflowing, or out-of-range values.
+
+**Decimal conversion rules are frozen for the v0.2 draft**: `encoded = round_half_away_from_zero((value - offset) × scale_multiplier)`. The physical offset is subtracted before scaling. Changes to this rule require an explicit contract revision; this draft freeze is not a released compatibility guarantee.
+
+Fixed examples and rejection cases live in [`tests/vectors/decimal-conversion-v1.json`](tests/vectors/decimal-conversion-v1.json) and are exercised by [`tests/decimal_conversion_vectors.rs`](tests/decimal_conversion_vectors.rs). Both API and vectors remain draft until the v0.2 contract is reviewed and released.
+
 ## Compact Representation
 
 The data-plane representation is intentionally compact and deterministic.
