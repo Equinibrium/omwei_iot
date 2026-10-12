@@ -1,18 +1,49 @@
 {
   "status": "proposal-only",
-  "note": "IDs are placeholders, not allocations. Wire bytes are illustrative until allocation is approved. Energy/water numeric limits below are proposed int32-domain limits, not validated meter specifications.",
+  "note": "IDs are placeholders, not allocations. Wire bytes are illustrative until allocation is approved. Numeric limits are proposed encoded-domain constraints, not validated meter specifications.",
   "wire_format": {
     "atom_bytes": 6,
     "descriptor_id": "uint16 big-endian",
     "encoded_value": "signed int32 two's-complement big-endian",
     "rounding": "round half away from zero; reject values outside descriptor constraints; never wrap or saturate"
   },
+  "proposed_encoded_constraints": {
+    "cumulative_active_electrical_energy": {
+      "min": 0,
+      "max": 2147483647,
+      "canonical_unit": "kilowatt_hour",
+      "scale": "0.01",
+      "physical_domain": {
+        "min": "0 kWh",
+        "max": "21474836.47 kWh"
+      },
+      "qualification": "int32 representation-domain boundary, not a verified meter limit or lifetime guarantee"
+    },
+    "cumulative_water_volume": {
+      "min": 0,
+      "max": 2147483647,
+      "canonical_unit": "cubic_meter",
+      "scale": "0.001",
+      "physical_domain": {
+        "min": "0 m3",
+        "max": "2147483.647 m3"
+      },
+      "qualification": "int32 representation-domain boundary, not a verified meter limit or lifetime guarantee"
+    },
+    "water_volume_flow_rate": {
+      "min": null,
+      "max": null,
+      "canonical_unit": "liter_per_second",
+      "scale": "0.001",
+      "qualification": "valid physical range remains undecided until a target meter class is selected"
+    }
+  },
   "vectors": [
     {
       "case": "zero",
       "label": "cumulative_active_electrical_energy",
       "provisional_id": "0x0048",
-      "canonical_unit": "kWh",
+      "canonical_unit": "kilowatt_hour",
       "scale": "0.01",
       "physical_input": "0",
       "encoded_integer": 0,
@@ -22,7 +53,7 @@
       "case": "one_scale_step",
       "label": "cumulative_active_electrical_energy",
       "provisional_id": "0x0048",
-      "canonical_unit": "kWh",
+      "canonical_unit": "kilowatt_hour",
       "scale": "0.01",
       "physical_input": "0.01",
       "encoded_integer": 1,
@@ -32,7 +63,7 @@
       "case": "half_step_rounds_away_from_zero",
       "label": "cumulative_active_electrical_energy",
       "provisional_id": "0x0048",
-      "canonical_unit": "kWh",
+      "canonical_unit": "kilowatt_hour",
       "scale": "0.01",
       "physical_input": "0.005",
       "encoded_integer": 1,
@@ -42,7 +73,7 @@
       "case": "15_min_at_200W",
       "label": "cumulative_active_electrical_energy",
       "provisional_id": "0x0048",
-      "canonical_unit": "kWh",
+      "canonical_unit": "kilowatt_hour",
       "scale": "0.01",
       "physical_input": "0.05",
       "encoded_integer": 5,
@@ -52,7 +83,7 @@
       "case": "418_kWh",
       "label": "cumulative_active_electrical_energy",
       "provisional_id": "0x0048",
-      "canonical_unit": "kWh",
+      "canonical_unit": "kilowatt_hour",
       "scale": "0.01",
       "physical_input": "418",
       "encoded_integer": 41800,
@@ -62,7 +93,7 @@
       "case": "int32_max_proposed_domain_boundary",
       "label": "cumulative_active_electrical_energy",
       "provisional_id": "0x0048",
-      "canonical_unit": "kWh",
+      "canonical_unit": "kilowatt_hour",
       "scale": "0.01",
       "physical_input": "21474836.47",
       "encoded_integer": 2147483647,
@@ -72,7 +103,7 @@
       "case": "zero",
       "label": "cumulative_water_volume",
       "provisional_id": "0x0049",
-      "canonical_unit": "m3",
+      "canonical_unit": "cubic_meter",
       "scale": "0.001",
       "physical_input": "0",
       "encoded_integer": 0,
@@ -82,7 +113,7 @@
       "case": "one_scale_step",
       "label": "cumulative_water_volume",
       "provisional_id": "0x0049",
-      "canonical_unit": "m3",
+      "canonical_unit": "cubic_meter",
       "scale": "0.001",
       "physical_input": "0.001",
       "encoded_integer": 1,
@@ -92,7 +123,7 @@
       "case": "half_step_rounds_away_from_zero",
       "label": "cumulative_water_volume",
       "provisional_id": "0x0049",
-      "canonical_unit": "m3",
+      "canonical_unit": "cubic_meter",
       "scale": "0.001",
       "physical_input": "0.0005",
       "encoded_integer": 1,
@@ -102,7 +133,7 @@
       "case": "representative_value",
       "label": "cumulative_water_volume",
       "provisional_id": "0x0049",
-      "canonical_unit": "m3",
+      "canonical_unit": "cubic_meter",
       "scale": "0.001",
       "physical_input": "1.234",
       "encoded_integer": 1234,
@@ -112,7 +143,7 @@
       "case": "int32_max_proposed_domain_boundary",
       "label": "cumulative_water_volume",
       "provisional_id": "0x0049",
-      "canonical_unit": "m3",
+      "canonical_unit": "cubic_meter",
       "scale": "0.001",
       "physical_input": "2147483.647",
       "encoded_integer": 2147483647,
@@ -122,13 +153,25 @@
       "case": "representative_value_only_no_range_claim",
       "label": "water_volume_flow_rate",
       "provisional_id": "0x004A",
-      "canonical_unit": "L/s",
+      "canonical_unit": "liter_per_second",
       "scale": "0.001",
       "physical_input": "12.345",
       "encoded_integer": 12345,
       "atom_hex": "004A00003039"
     }
   ],
+  "quantization_analysis": {
+    "case": "15_min_at_200W_with_0.1_kWh_counter_step",
+    "true_interval_energy": "0.05 kWh",
+    "counter_step": "0.1 kWh",
+    "possible_observed_counter_delta": [
+      "0 kWh",
+      "0.1 kWh"
+    ],
+    "maximum_absolute_quantization_error": "0.05 kWh",
+    "maximum_relative_error_for_this_interval": "100%",
+    "qualification": "which delta is observed depends on the cumulative readings' positions relative to quantization boundaries; do not claim the interval is always indistinguishable from zero"
+  },
   "rejection_and_state_scenarios": [
     {
       "case": "negative_cumulative_counter",
