@@ -148,7 +148,7 @@ These vectors verify the current encoded-integer wire representation. Determinis
 
 ## Deterministic Decimal Conversion (v0.2 draft)
 
-The draft API `decimal_conversion::from_decimal` converts a plain decimal string in the descriptor's canonical physical unit into a validated atom without binary floating-point arithmetic. The current rule uses exact base-10 parsing, rounds to nearest with exact ties away from zero, accepts at most 18 fractional digits, and rejects malformed, overflowing, or out-of-range values.
+The draft API `decimal_conversion::from_decimal` converts a plain decimal string in the descriptor's canonical physical unit into a validated atom without binary floating-point arithmetic. The current rule uses exact base-10 parsing, rounds to nearest with exact ties away from zero, accepts at most 18 fractional digits, and rejects malformed, overflowing, or out-of-range values. The companion API `decimal_conversion::from_decimal_with_report` returns the same validated atom plus a `rounded` flag, which is true whenever the scaled input has a non-zero fractional remainder and quantization was required. The original `from_decimal` API remains available for callers that do not need this report.
 
 **Decimal conversion rules are frozen for the v0.2 draft**: `encoded = round_half_away_from_zero((value - offset) × scale_multiplier)`. The physical offset is subtracted before scaling. Changes to this rule require an explicit contract revision; this draft freeze is not a released compatibility guarantee.
 
