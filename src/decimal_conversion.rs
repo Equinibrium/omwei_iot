@@ -56,8 +56,8 @@ fn parse_decimal(input: &str) -> Result<(i128, i128), &'static str> {
 }
 
 /// Convert decimal input with explicit integer multiplier, physical offset and
-/// encoded-domain bounds. Exposed only inside this module for offset conformance
-/// tests; public callers should use `from_decimal`.
+/// encoded-domain bounds. The boolean reports whether the scaled value had a
+/// non-zero fractional remainder before rounding.
 fn convert_with_parameters(
     input: &str,
     scale_multiplier: i32,
