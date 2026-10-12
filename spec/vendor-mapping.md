@@ -27,6 +27,8 @@ A mapping MUST establish:
 6. the conversion/canonicalization rule;
 7. any assumptions or loss of precision.
 
+The adapter MUST normalize source-specific units and numeric scales/resolutions to the descriptor's registry-defined canonical unit and scale before emitting an atom.
+
 A mapping MUST NOT silently equate fields whose meanings differ.
 
 ## Example
