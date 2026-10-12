@@ -1,0 +1,30 @@
+name: QUDT mapping audit
+
+on:
+  pull_request:
+    paths:
+      - "docs/audits/**"
+      - "tools/audit_qudt_energy_water.py"
+      - "tools/requirements-qudt-audit.txt"
+      - ".github/workflows/qudt-audit.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/audits/**"
+      - "tools/audit_qudt_energy_water.py"
+      - "tools/requirements-qudt-audit.txt"
+      - ".github/workflows/qudt-audit.yml"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned audit dependency
+        run: python -m pip install -r tools/requirements-qudt-audit.txt
+      - name: Verify pinned QUDT RDF and mappings
+        run: python tools/audit_qudt_energy_water.py
