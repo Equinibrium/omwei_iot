@@ -88,7 +88,8 @@ fn map(mapping: &SourceMapping, sample: &SourceSample) -> Result<[u8; 6], String
     let offset_d = mapping.offset_denominator as i128;
     let physical_n = add(mul(mul(raw_n, scale_n)?, offset_d)?, mul(mul(offset_n, raw_d)?, scale_d)?)?;
     let physical_d = mul(mul(raw_d, scale_d)?, offset_d)?;
-    let shifted_n = add(physical_n, -mul(d.offset as i128, physical_d)?)?;
+    let descriptor_offset = mul(d.offset as i128, physical_d)?;
+    let shifted_n = add(physical_n, descriptor_offset.checked_neg().ok_or_else(|| "out_of_range: descriptor offset negation overflow".to_string())?)?;
     let encoded_n = mul(shifted_n, d.scale as i128)?;
     let encoded = round_away(encoded_n, physical_d)?;
     if encoded < i32::MIN as i128 || encoded > i32::MAX as i128 { return Err("out_of_range".into()); }
@@ -149,10 +150,21 @@ fn run(profile_path: &str, vector_path: &str) -> Result<(), String> {
 fn decode_hex(s: &str) -> Result<[u8; 6], String> {
     if s.len() != 12 { return Err("invalid_vectors: expected_wire_hex must contain 12 hex chars".into()); }
     let mut out = [0u8; 6];
+    let bytes = s.as_bytes();
     for i in 0..6 {
-        out[i] = u8::from_str_radix(&s[i*2..i*2+2], 16).map_err(|_| "invalid_vectors: invalid wire hex".to_string())?;
+        let hi = hex_nibble(bytes[i * 2])?;
+        let lo = hex_nibble(bytes[i * 2 + 1])?;
+        out[i] = (hi << 4) | lo;
     }
     Ok(out)
+}
+fn hex_nibble(byte: u8) -> Result<u8, String> {
+    match byte {
+        b'0'..=b'9' => Ok(byte - b'0'),
+        b'a'..=b'f' => Ok(byte - b'a' + 10),
+        b'A'..=b'F' => Ok(byte - b'A' + 10),
+        _ => Err("invalid_vectors: invalid wire hex".into()),
+    }
 }
 fn hex(bytes: &[u8]) -> String { bytes.iter().map(|b| format!("{b:02x}")).collect() }
 fn main() {
