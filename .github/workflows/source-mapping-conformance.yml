@@ -1,0 +1,21 @@
+name: Source mapping conformance runner
+
+on:
+  push:
+    branches: [main, "feat/source-mapping-conformance-runner"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  source-mapping-conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Run Rust tests and conformance runner tests
+        run: cargo test --all-targets
+      - name: Run shared source mapping vectors
+        run: cargo run --bin source-mapping-conformance
