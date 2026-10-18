@@ -154,6 +154,11 @@ The draft API `decimal_conversion::from_decimal` converts a plain decimal string
 
 Fixed examples and rejection cases live in [`tests/vectors/decimal-conversion-v1.json`](tests/vectors/decimal-conversion-v1.json) and are exercised by [`tests/decimal_conversion_vectors.rs`](tests/decimal_conversion_vectors.rs). Both API and vectors remain draft until the v0.2 contract is reviewed and released.
 
+
+## Source mapping conformance runner
+
+An experimental Rust runner executes the shared source mapping profile and vector fixtures, compares exact six-byte atoms, and checks stable rejection categories. See [`examples/source-mapping-conformance/README.md`](examples/source-mapping-conformance/README.md) or run `cargo run --bin source-mapping-conformance` from the repository root. The fixtures are synthetic and do not claim live OT Fabric interoperability.
+
 ## Compact Representation
 
 The data-plane representation is intentionally compact and deterministic.
