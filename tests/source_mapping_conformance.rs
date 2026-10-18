@@ -35,3 +35,21 @@ fn runner_rejects_malformed_wire_hex_without_panicking() {
     assert!(!output.status.success(), "runner accepted malformed expected wire hex");
     assert!(String::from_utf8_lossy(&output.stderr).contains("invalid wire hex"));
 }
+
+
+#[test]
+fn runner_rejects_duplicate_source_profiles() {
+    let source = fs::read_to_string("examples/source-mappings-v1.json").unwrap();
+    let mut document: serde_json::Value = serde_json::from_str(&source).unwrap();
+    let mappings = document["mappings"].as_array_mut().unwrap();
+    let duplicate = mappings[0].clone();
+    mappings.push(duplicate);
+    let path = std::env::temp_dir().join(format!("omwei-duplicate-profiles-{}.json", std::process::id()));
+    fs::write(&path, serde_json::to_vec(&document).unwrap()).unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_source-mapping-conformance"))
+        .args([path.to_str().unwrap(), "testdata/source-mapping-interop-v1.json"])
+        .output().expect("run conformance runner");
+    let _ = fs::remove_file(path);
+    assert!(!output.status.success(), "runner accepted duplicate source profiles");
+    assert!(String::from_utf8_lossy(&output.stderr).contains("duplicate source identity"));
+}
