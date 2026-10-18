@@ -6,7 +6,12 @@ fn shared_vectors_pass() {
         .args(["examples/source-mappings-v1.json", "testdata/source-mapping-interop-v1.json"])
         .output().expect("run conformance runner");
     assert!(output.status.success(), "stdout={} stderr={}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
-    assert!(String::from_utf8_lossy(&output.stdout).contains("PASS all 18 source-mapping vectors"));
+    let vectors: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string("testdata/source-mapping-interop-v1.json").unwrap(),
+    ).unwrap();
+    let count = vectors["cases"].as_array().unwrap().len();
+    let summary = format!("PASS all {count} source-mapping vectors");
+    assert!(String::from_utf8_lossy(&output.stdout).contains(&summary));
 }
 
 #[test]
